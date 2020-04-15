@@ -7,16 +7,17 @@ NLP rule language for matching natural language against a rule base.
 ### Base version
 
 - word normalization (lemmatization)
+- ( a | b ) to indicate 'or'; grouping
 - "literal" (still case insensitive)
 - '+' to indicate adjacent rules: my + name + is; no words inbetween
-- ( a | b ) to indicate 'or'; grouping
 - ? appended = optional rule; same as [0-1] appended
 - [control instructions]
   - [=store_as_name] store last captured rule
   - [Start] start of sentence (standalone)
   - [End] end of sentence (standalone)
   - [0-10] standalone match N words
-  - [0-10] appended; match N rules
+  - [0-10] appended; match 1-10 rules
+  - [0-] appended; match 0 or more
 
 ### Extended version
 
