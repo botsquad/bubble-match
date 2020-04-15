@@ -9,7 +9,8 @@ defmodule BubbleExpr.ParserTest do
     "a [0] b",
     "a [1-2;=lala] b",
     "(hello | hi) world [End]",
-    "world[1-2]"
+    "world[1-2]",
+    "this is a /regex/"
   ]
 
   test "parser" do

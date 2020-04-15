@@ -44,6 +44,17 @@ defmodule BubbleExpr.Parser do
     |> ignore(string(")"))
     |> tag(:or_group)
 
+  defp regex_compile([regex]) do
+    Regex.compile!(regex)
+  end
+
+  regex =
+    ignore(string("/"))
+    |> ascii_string([{:not, ?/}], min: 0)
+    |> ignore(string("/"))
+    |> reduce(:regex_compile)
+    |> unwrap_and_tag(:regex)
+
   defp to_symbol([{s, []}]), do: s
 
   symbol = fn string, symbol ->
@@ -62,7 +73,7 @@ defmodule BubbleExpr.Parser do
       |> concat(@az)
       |> repeat(@az)
       |> reduce(:to_string)
-      |> tag(:assign),
+      |> unwrap_and_tag(:assign),
       # eat a range of tokens
       integer(min: 0)
       |> ignore(string("-"))
@@ -88,6 +99,7 @@ defmodule BubbleExpr.Parser do
     :rule,
     choice([
       word,
+      regex,
       string_literal,
       or_group
     ])

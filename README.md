@@ -6,30 +6,17 @@ NLP rule language for matching natural language against a rule base.
 
 Match basic words, including optional words in between:
 
-```
-hello world
-```
-
-matches:
-
-```
-Hello, world!
-Hello there, world!
-Well hello world.
-```
-but not:
-
-```
-World hello
-```
-
-|---------------|--------------------|----------------|
 | Match string  | Matches            | Does not match |
 |---------------|--------------------|----------------|
 | `hello world` | Hello, world!      | World hello    |
 |               | Hello there, world |                |
 |               | Well hello world   |                |
-|---------------|--------------------|----------------|
+
+Match regular expressions
+
+| Match string | Matches | Does not match |
+|--------------|---------|----------------|
+| `/[a-z]+/`   | abcd    | LALA           |
 
 
 ## Definition
