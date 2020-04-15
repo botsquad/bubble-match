@@ -1,0 +1,10 @@
+language: elixir
+matrix:
+  include:
+    - name: "Elixir 1.9 / OTP 21"
+      elixir: 1.9
+      otp_release: 21.0
+    - name: "Elixir 1.9 / OTP 22"
+      elixir: 1.9
+      otp_release: 22.0
+script: MIX_ENV=test mix compile --warnings-as-errors && MIX_ENV=test mix test
