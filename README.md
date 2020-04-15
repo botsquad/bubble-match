@@ -2,6 +2,36 @@
 
 NLP rule language for matching natural language against a rule base.
 
+## Examples
+
+Match basic words, including optional words in between:
+
+```
+hello world
+```
+
+matches:
+
+```
+Hello, world!
+Hello there, world!
+Well hello world.
+```
+but not:
+
+```
+World hello
+```
+
+|---------------|--------------------|----------------|
+| Match string  | Matches            | Does not match |
+|---------------|--------------------|----------------|
+| `hello world` | Hello, world!      | World hello    |
+|               | Hello there, world |                |
+|               | Well hello world   |                |
+|---------------|--------------------|----------------|
+
+
 ## Definition
 
 ### Base version
@@ -30,7 +60,6 @@ NLP rule language for matching natural language against a rule base.
   [Email] [AmountOfMoney] [CreditCardNumber] [Distance] [Numeral] etc.
 
 
-## Examples
 
 
 ## Inspiration
