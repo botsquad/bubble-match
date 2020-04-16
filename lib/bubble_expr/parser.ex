@@ -1,7 +1,7 @@
 defmodule BubbleExpr.Parser do
   import NimbleParsec
 
-  alias BubbleExpr.Validator
+  # alias BubbleExpr.Validator
 
   # ws       := [ ]+
   # word     := (A-Za-z)+

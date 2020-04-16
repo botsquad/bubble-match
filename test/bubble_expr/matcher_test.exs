@@ -10,10 +10,12 @@ defmodule BubbleExpr.MatcherTest do
     assert :nomatch == Matcher.match("world hello", "Hello, world!")
   end
 
-  @tag skip: true
   test "literal" do
     assert {:match, %{}} == Matcher.match("\"world!\"", "Hello, world!")
     assert {:match, %{}} == Matcher.match("\"San Francisco\"", "I live in San Francisco, dude.")
+
+    assert {:match, %{}} ==
+             Matcher.match("\"San Francisco\" dude", "I live in San Francisco, if you know dude.")
   end
 
   test "regex" do
