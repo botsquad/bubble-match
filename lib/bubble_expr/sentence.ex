@@ -32,7 +32,7 @@ defmodule BubbleExpr.Sentence do
       |> String.downcase()
     end
 
-    defparsec(
+    defparsecp(
       :sentence,
       choice([
         ws,
@@ -42,6 +42,16 @@ defmodule BubbleExpr.Sentence do
         |> optional(ws)
       ])
     )
+
+    def tokenize(input) do
+      case sentence(input) do
+        {:ok, tokens, "", _, _, _} ->
+          Enum.with_index(tokens)
+          |> Enum.map(fn {token, index} ->
+            %{token | index: index}
+          end)
+      end
+    end
   end
 
   def naive_tokenize("") do
@@ -49,7 +59,7 @@ defmodule BubbleExpr.Sentence do
   end
 
   def naive_tokenize(input) do
-    {:ok, tokens, "", _, _, _} = Tokenizer.sentence(input)
+    tokens = Tokenizer.tokenize(input)
     %__MODULE__{text: input, tokens: tokens}
   end
 end

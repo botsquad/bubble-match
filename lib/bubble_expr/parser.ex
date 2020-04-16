@@ -42,7 +42,7 @@ defmodule BubbleExpr.Parser do
     )
     |> optional(ws)
     |> ignore(string(")"))
-    |> tag(:or_group)
+    |> tag(:or)
 
   defp regex_compile([regex]) do
     Regex.compile!(regex)
@@ -61,6 +61,16 @@ defmodule BubbleExpr.Parser do
     ignore(string(string)) |> tag(symbol) |> reduce(:to_symbol)
   end
 
+  defp eat(args, override \\ nil)
+
+  defp eat([n], override) do
+    {:eat, {n, override || n}}
+  end
+
+  defp eat([a, b], _override) do
+    {:eat, {a, b}}
+  end
+
   defcombinatorp(
     :control_code,
     choice([
@@ -77,11 +87,11 @@ defmodule BubbleExpr.Parser do
       # eat a range of tokens
       integer(min: 0)
       |> ignore(string("-"))
-      |> integer(min: 1)
-      |> tag(:eat),
+      |> optional(integer(min: 1))
+      |> reduce({:eat, [:infinity]}),
       # eat a single token
       integer(min: 1)
-      |> unwrap_and_tag(:eat),
+      |> reduce(:eat),
       empty()
     ])
   )
@@ -95,31 +105,48 @@ defmodule BubbleExpr.Parser do
     |> ignore(string("]"))
     |> tag(:control_block)
 
+  defp finalize_rule([{type, value}]) do
+    {type, value, []}
+  end
+
+  defp finalize_rule([{type, value}, {:optional, []}]) do
+    {type, value, [optional: true]}
+  end
+
+  defp finalize_rule([{type, value}, {:control_block, block}]) do
+    {type, value, block}
+  end
+
   defcombinatorp(
     :rule,
     choice([
       word,
       regex,
       string_literal,
-      or_group
+      or_group,
+      lookahead(string("[")) |> tag(:any)
     ])
-    |> optional(control_block)
-    |> tag(:rule)
-    |> optional(ws |> concat(control_block))
+    |> optional(choice([control_block, ignore(string("?")) |> tag(:optional)]))
+    |> reduce(:finalize_rule)
   )
+
+  defp finalize_seq(r) do
+    r
+  end
 
   defparsecp(
     :rule_seq,
     parsec(:rule)
     |> repeat(ws |> concat(parsec(:rule)))
-    |> tag(:seq)
+    |> reduce(:finalize_seq)
   )
 
   # defparsec(:parse, parsec(:rule_seq))
   def parse(input) do
     case rule_seq(input) do
-      {:ok, parsed, "", _, _, _} ->
-        Validator.validate(parsed)
+      {:ok, [parsed], "", _, _, _} ->
+        # Validator.validate(parsed)
+
         {:ok, %BubbleExpr{ast: parsed}}
 
       {:ok, _parsed, remain, _, _, _} ->

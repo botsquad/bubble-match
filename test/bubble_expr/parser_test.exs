@@ -9,6 +9,7 @@ defmodule BubbleExpr.ParserTest do
     "a [0] b",
     "a [1-2;=lala] b",
     "(hello | hi) world [End]",
+    "[Start] [1-2] hello",
     "world[1-2]",
     "this is a /regex/"
   ]
@@ -17,5 +18,10 @@ defmodule BubbleExpr.ParserTest do
     for sentence <- @valid do
       assert {:ok, _ast} = Parser.parse(sentence)
     end
+  end
+
+  test "p2" do
+    Parser.parse("[Start] hello? [0-1] world (a b | b c d)")
+    |> IO.inspect(label: "x")
   end
 end

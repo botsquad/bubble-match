@@ -46,4 +46,60 @@ defmodule BubbleExpr.MatcherTest do
     assert [%{raw: "Hello,"}, %{raw: "world!"}] = greeting
     assert %{raw: "world!"} = planet
   end
+
+  test "[Start]" do
+    assert {:match, %{}} = Matcher.match("[Start] hello", "Hello, world!")
+    assert :nomatch = Matcher.match("[Start] hello", "Well hello there")
+  end
+
+  test "[End]" do
+    assert {:match, %{}} = Matcher.match("world [End]", "Hello, world!")
+    assert :nomatch = Matcher.match("world [End]", "The world is ending")
+  end
+
+  test "[Start;End]" do
+    assert {:match, %{}} = Matcher.match("[Start;End]", " ")
+    assert {:match, %{}} = Matcher.match("[Start] [End]", " ")
+    assert :nomatch = Matcher.match("[Start;End]", "lala")
+    assert :nomatch = Matcher.match("[Start] [End]", "lala")
+  end
+
+  test "[N]" do
+    assert {:match, %{}} = Matcher.match("hello [0] world", "Hello, world!")
+    assert :nomatch = Matcher.match("hello [0] world", "Hello there, world!")
+
+    assert {:match, %{}} = Matcher.match("a [1] c", "a b c")
+    assert {:match, %{}} = Matcher.match("a [2] c", "a b b c")
+
+    assert {:match, %{"xy" => xy}} = Matcher.match("a [2;=xy] c", "a X Y c")
+    assert [%{raw: "X"}, %{raw: "Y"}] = xy
+  end
+
+  test "[0-N]" do
+    assert {:match, %{}} = Matcher.match("hello [0-1] world", "Hello, world!")
+    assert {:match, %{}} = Matcher.match("hello [0-1] world", "Hello there, world!")
+    assert {:match, %{}} = Matcher.match("hello [0-2] world", "Hello you there, world!")
+
+    assert {:match, %{"x" => x}} = Matcher.match("hello [0-2;=x] world", "Hello you, world!")
+    assert [%{raw: "you,"}] = x
+
+    assert {:match, %{"xy" => xy}} = Matcher.match("a [0-2;=xy] c", "a X Y c")
+    assert [%{raw: "X"}, %{raw: "Y"}] = xy
+  end
+
+  test "[N-M]" do
+    assert :nomatch = Matcher.match("hello [1-1] world", "Hello, world!")
+    assert {:match, %{}} = Matcher.match("hello [1-1] world", "Hello there, world!")
+    assert {:match, %{}} = Matcher.match("hello [1-2] world", "Hello there, you world!")
+    assert {:match, %{}} = Matcher.match("hello [2-2] world", "Hello there, you world!")
+    assert :nomatch = Matcher.match("hello [2-2] world", "Hello there world!")
+    assert :nomatch = Matcher.match("hello [2-3] world", "Hello there world!")
+
+    assert :nomatch = Matcher.match("hello [10-] world", "Hello there world!")
+    assert {:match, %{"all" => all}} = Matcher.match("hello [1-;=all]", "Hello a b c d!")
+    # non-greedy
+    assert 1 == length(all)
+
+    assert :nomatch = Matcher.match("hello [10-]", "Hello a b c d!")
+  end
 end
