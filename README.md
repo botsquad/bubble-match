@@ -21,7 +21,7 @@ Match regular expressions
 
 ## Definition
 
-### Base version
+### Base version requirements
 
 - word normalization (lemmatization)
 - ( a | b ) to indicate 'or'; grouping
@@ -34,14 +34,15 @@ Match regular expressions
   - [End] end of sentence (standalone)
   - [0-10] standalone match N words
   - [0-10] appended; match 1-10 rules
-  - [0-] appended; match 0 or more
+  - [1+] appended; match 1 or more
+- /.../ regex token
+- < a, b > indicates order-independent sequence
+
 
 ### Extended version
 
 - polarity filter (language specific!)
 - @ to indicate rule composition
-- < a, b > indicates order-independent sequence
-- /.../ regex
   my email is /[a-z]@[a-z].com/[=email]
 - duckling
   [Email] [AmountOfMoney] [CreditCardNumber] [Distance] [Numeral] etc.

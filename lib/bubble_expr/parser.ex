@@ -6,6 +6,7 @@ defmodule BubbleExpr.Parser do
   # ws       := [ ]+
   # word     := (A-Za-z)+
   # or_group := '(' ws? rule_seq (ws '|' ws rule_seq)* ws? ')'
+  # perm_group := '<' ws? rule_seq ws? '>'
 
   # rule     := word | or_group
   # rule_seq := rule | rule ws rule_seq
@@ -43,6 +44,14 @@ defmodule BubbleExpr.Parser do
     |> optional(ws)
     |> ignore(string(")"))
     |> tag(:or)
+
+  perm_group =
+    ignore(string("<"))
+    |> optional(ws)
+    |> parsec(:rule_seq)
+    |> optional(ws)
+    |> ignore(string(">"))
+    |> unwrap_and_tag(:perm)
 
   defp regex_compile([regex]) do
     Regex.compile!(regex)
@@ -141,6 +150,7 @@ defmodule BubbleExpr.Parser do
       regex,
       literal,
       or_group,
+      perm_group,
       lookahead(string("[")) |> tag(:any)
     ])
     |> optional(choice([control_block, ignore(string("?")) |> tag(:optional)]))
@@ -160,12 +170,15 @@ defmodule BubbleExpr.Parser do
 
   # defparsec(:parse, parsec(:rule_seq))
   def parse(input) do
-    case rule_seq(input) do
+    case rule_seq(String.trim(input)) do
       {:ok, [parsed], "", _, _, _} ->
         # Validator.validate(parsed)
-        parsed = ensure_eat_before_rules(parsed, nil)
+        parsed =
+          parsed
+          |> expand_permutations()
+          |> ensure_eat_before_rules(nil)
 
-        IO.inspect(parsed, label: "parsed")
+        # IO.inspect(parsed, label: "parsed")
 
         {:ok, %BubbleExpr{ast: parsed}}
 
@@ -194,4 +207,25 @@ defmodule BubbleExpr.Parser do
   end
 
   defp ensure_eat_before_rules_inner(data), do: data
+
+  defp expand_permutations(rules) do
+    Enum.map(
+      rules,
+      fn
+        {:perm, rules, meta} ->
+          {:or, permutations(expand_permutations(rules)), meta}
+
+        {verb, rules, meta} when is_list(rules) ->
+          {verb, expand_permutations(rules), meta}
+
+        x ->
+          x
+      end
+    )
+  end
+
+  defp permutations([]), do: [[]]
+
+  defp permutations(list),
+    do: for(elem <- list, rest <- permutations(list -- [elem]), do: [elem | rest])
 end

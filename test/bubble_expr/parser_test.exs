@@ -12,12 +12,13 @@ defmodule BubbleExpr.ParserTest do
     "(hello | hi) world [End]",
     "[Start] [1-2] hello",
     "world[1-2]",
-    "this is a /regex/"
+    "this is a /regex/",
+    "< a < b c > > d"
   ]
 
   test "parser" do
     for sentence <- @valid do
-      assert {:ok, ast} = Parser.parse(sentence)
+      assert {:ok, _ast} = Parser.parse(sentence)
       # IO.puts("")
       # IO.puts("----------")
       # IO.inspect(sentence, label: "sentence")

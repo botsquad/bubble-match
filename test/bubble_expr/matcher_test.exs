@@ -33,6 +33,15 @@ defmodule BubbleExpr.MatcherTest do
     assert :nomatch == Matcher.match("(hello | hi) you", "hello me")
   end
 
+  test "permutation group" do
+    assert {:match, %{}} == Matcher.match("< hello world >", "Hello world!")
+    assert {:match, %{}} == Matcher.match("< hello world >", "world Hello")
+    assert {:match, %{}} == Matcher.match("< hello (earth | world) >", "earth Hello")
+    assert {:match, %{}} == Matcher.match("< hello (earth | world) >", "hello earth ")
+    assert {:match, %{}} == Matcher.match("< hello (earth | world) >", "hello world ")
+    assert :nomatch == Matcher.match("< hello (earth | world) >", "earth world ")
+  end
+
   test "capturing" do
     assert {:match, %{"greeting" => tokens}} = Matcher.match("hello[=greeting]", "Hello, world!")
     assert [%{raw: "Hello,"}] = tokens
