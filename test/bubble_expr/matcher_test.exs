@@ -14,6 +14,8 @@ defmodule BubbleExpr.MatcherTest do
     assert {:match, %{}} == Matcher.match("\"world!\"", "Hello, world!")
     assert {:match, %{}} == Matcher.match("\"San Francisco\"", "I live in San Francisco, dude.")
 
+    assert :nomatch == Matcher.match("\"San Francisco\" yo", "I live in San Francisco, dude.")
+
     assert {:match, %{}} ==
              Matcher.match("\"San Francisco\" dude", "I live in San Francisco, if you know dude.")
   end

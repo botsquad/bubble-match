@@ -87,7 +87,7 @@ defmodule BubbleExpr.Matcher do
     boolean_match(t, test, ctl, context, rules, ts_remaining, ts_match, context)
   end
 
-  defp match_rules([{:literal, str, ctl} | _] = rules, [t | _] = ts_remaining, ts_match, context) do
+  defp match_rules([{:literal, str, _} | _] = rules, [t | _] = ts_remaining, ts_match, context) do
     offset = t.start
 
     ts_remaining
@@ -97,11 +97,14 @@ defmodule BubbleExpr.Matcher do
         {_, chunk} = String.split_at(str, t.start - offset)
 
         cond do
+          t.start - offset > String.length(str) ->
+            {:halt, acc}
+
           String.starts_with?(chunk, t.raw) ->
-            {:cont, {[t | matched], tl(ts_remaining)}}
+            {:cont, {[t | matched], tl(remaining)}}
 
           String.length(chunk) < String.length(t.raw) and String.starts_with?(t.raw, chunk) ->
-            {:cont, {[t | matched], tl(ts_remaining)}}
+            {:cont, {[t | matched], tl(remaining)}}
 
           true ->
             {:halt, acc}
@@ -113,7 +116,7 @@ defmodule BubbleExpr.Matcher do
         :nomatch
 
       {matched, remaining} ->
-        {:match, remaining, matched ++ ts_match, context}
+        match_rules(tl(rules), remaining, matched ++ ts_match, context)
     end
   end
 
