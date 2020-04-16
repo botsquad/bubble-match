@@ -15,12 +15,12 @@ defmodule BubbleExpr.Parser do
 
   @az ascii_char(Enum.to_list(?A..?Z) ++ Enum.to_list(?a..?z))
 
-  string_literal =
+  literal =
     ignore(string("\""))
     |> repeat(utf8_char([{:not, ?"}]))
     |> reduce(:to_string)
     |> ignore(string("\""))
-    |> unwrap_and_tag(:string_literal)
+    |> unwrap_and_tag(:literal)
 
   word =
     @az
@@ -67,54 +67,71 @@ defmodule BubbleExpr.Parser do
     {:eat, {n, override || n}}
   end
 
+  defp eat([a, "+"], _override) do
+    {:eat, {a, :infinity}}
+  end
+
   defp eat([a, b], _override) do
     {:eat, {a, b}}
   end
 
-  defcombinatorp(
-    :control_code,
-    choice([
+  # slot assignment
+  assign =
+    ignore(string("="))
+    |> concat(@az)
+    |> repeat(@az)
+    |> reduce(:to_string)
+    |> unwrap_and_tag(:assign)
+
+  defp to_int(a) do
+    :string.to_integer(a) |> elem(0)
+  end
+
+  int = times(ascii_char([?0..?9]), min: 1) |> reduce(:to_int)
+
+  control_block =
+    ignore(string("["))
+    |> choice([
+      int
+      |> optional(
+        choice([
+          string("+"),
+          ignore(string("-")) |> concat(int)
+        ])
+      )
+      |> reduce(:eat),
       # start of sentence
       symbol.("Start", :start),
       # end of sentence
       symbol.("End", :end),
-      # slot assignment
-      ignore(string("="))
-      |> concat(@az)
-      |> repeat(@az)
-      |> reduce(:to_string)
-      |> unwrap_and_tag(:assign),
-      # eat a range of tokens
-      integer(min: 0)
-      |> ignore(string("-"))
-      |> optional(integer(min: 1))
-      |> reduce({:eat, [:infinity]}),
-      # eat a single token
-      integer(min: 1)
-      |> reduce(:eat),
       empty()
     ])
-  )
-
-  control_block =
-    ignore(string("["))
-    |> optional(ws)
-    |> parsec(:control_code)
-    |> repeat(ignore(string(";")) |> parsec(:control_code))
-    |> optional(ws)
+    |> optional(assign)
     |> ignore(string("]"))
-    |> tag(:control_block)
+
+  defp finalize_rule([a, b, {:assign, v}]) do
+    {a, b, c} = finalize_rule([a, b])
+    {a, b, Keyword.put(c, :assign, v)}
+  end
+
+  defp finalize_rule([{:any, []}, value]) do
+    {:any, value, []}
+  end
 
   defp finalize_rule([{type, value}]) do
     {type, value, []}
   end
 
   defp finalize_rule([{type, value}, {:optional, []}]) do
-    {type, value, [optional: true]}
+    {:or, [[{type, value, []}], []], []}
   end
 
-  defp finalize_rule([{type, value}, {:control_block, block}]) do
-    {type, value, block}
+  defp finalize_rule([{type, value}, {:assign, _} = kv]) do
+    {type, value, [kv]}
+  end
+
+  defp finalize_rule([{type, value}, {:eat, range}]) do
+    {type, value, [repeat: range]}
   end
 
   defcombinatorp(
@@ -122,7 +139,7 @@ defmodule BubbleExpr.Parser do
     choice([
       word,
       regex,
-      string_literal,
+      literal,
       or_group,
       lookahead(string("[")) |> tag(:any)
     ])
@@ -148,6 +165,8 @@ defmodule BubbleExpr.Parser do
         # Validator.validate(parsed)
         parsed = ensure_eat_before_rules(parsed, nil)
 
+        IO.inspect(parsed, label: "parsed")
+
         {:ok, %BubbleExpr{ast: parsed}}
 
       {:ok, _parsed, remain, _, _, _} ->
@@ -161,15 +180,13 @@ defmodule BubbleExpr.Parser do
 
       if type != :any and last_rule_type != :any do
         data = ensure_eat_before_rules_inner(data)
-        {type, [{type, data, ctl}, {:any, [], [eat: {0, :infinity}]} | new_rules]}
+        {type, [{type, data, ctl}, {:any, {:eat, {0, :infinity}}, []} | new_rules]}
       else
         {type, [rule | new_rules]}
       end
     end)
     |> elem(1)
     |> Enum.reverse()
-
-    #    |> IO.inspect(label: "x")
   end
 
   defp ensure_eat_before_rules_inner(list_of_rules) when is_list(list_of_rules) do

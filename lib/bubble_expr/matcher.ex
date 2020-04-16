@@ -22,6 +22,10 @@ defmodule BubbleExpr.Matcher do
     {:match, ts_remaining, ts_match, context}
   end
 
+  defp match_rules([{:any, t, []} | _], [], ts_match, context) when t in ~w(start end)a do
+    {:match, [], ts_match, context}
+  end
+
   defp match_rules(_, [], _ts_match, _context) do
     :nomatch
   end
@@ -83,11 +87,30 @@ defmodule BubbleExpr.Matcher do
     boolean_match(t, test, ctl, context, rules, ts_remaining, ts_match, context)
   end
 
-  defp match_rules([{:any, _, ctl} | _] = rules, ts_remaining, ts_match, context) do
-    with {eaten, ts_remaining} <- match_eat_tokens(ctl[:eat], tl(rules), ts_remaining, []) do
+  defp match_rules([{:literal, str, ctl} | _] = rules, [t | _] = ts_remaining, ts_match, context) do
+    test = fn -> t.raw == str end
+    boolean_match(t, test, ctl, context, rules, ts_remaining, ts_match, context)
+  end
+
+  defp match_rules([{:any, {:eat, range}, ctl} | _] = rules, ts_remaining, ts_match, context) do
+    with {eaten, ts_remaining} <- match_eat_tokens(range, tl(rules), ts_remaining, []) do
       context = opt_assign(ctl, eaten, context)
       match_rules(tl(rules), ts_remaining, eaten ++ ts_match, context)
     end
+  end
+
+  defp match_rules([{:any, :start, _} | _] = rules, ts_remaining, ts_match, context) do
+    case ts_remaining do
+      [%{index: 0} | _] ->
+        match_rules(tl(rules), ts_remaining, ts_match, context)
+
+      _ ->
+        :nomatch
+    end
+  end
+
+  defp match_rules([{:any, :end, _} | _], _ts_remaining, _ts_match, _context) do
+    :nomatch
   end
 
   defp match_eat_tokens(nil, _rules, ts_remaining, add) do

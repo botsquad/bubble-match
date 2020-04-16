@@ -10,6 +10,12 @@ defmodule BubbleExpr.MatcherTest do
     assert :nomatch == Matcher.match("world hello", "Hello, world!")
   end
 
+  @tag skip: true
+  test "literal" do
+    assert {:match, %{}} == Matcher.match("\"world!\"", "Hello, world!")
+    assert {:match, %{}} == Matcher.match("\"San Francisco\"", "I live in San Francisco, dude.")
+  end
+
   test "regex" do
     assert {:match, %{}} == Matcher.match("/\\d+/", "foo 32432")
     assert :nomatch == Matcher.match("/[a-z][a-z]+/", "a")
@@ -56,16 +62,14 @@ defmodule BubbleExpr.MatcherTest do
     assert :nomatch = Matcher.match("world [End]", "The world is ending")
   end
 
-  test "[Start;End]" do
-    assert {:match, %{}} = Matcher.match("[Start;End]", " ")
-    assert {:match, %{}} = Matcher.match("[Start] [End]", " ")
-    assert :nomatch = Matcher.match("[Start;End]", "lala")
+  test "[Start] [End]" do
+    assert {:match, %{}} = Matcher.match("[Start] [End]", "")
     assert :nomatch = Matcher.match("[Start] [End]", "lala")
   end
 
   test "[N]" do
-    assert {:match, %{}} = Matcher.match("[1]", "hello")
-    assert {:match, %{}} = Matcher.match("[0-] world", "hello world")
+    #    assert {:match, %{}} = Matcher.match("[1]", "hello")
+    assert {:match, %{}} = Matcher.match("[0+] world", "hello world")
     assert {:match, %{}} = Matcher.match("[2]", "hello world")
     assert {:match, %{}} = Matcher.match("[2]", "hello world there")
     assert :nomatch = Matcher.match("[2]", "hello")
@@ -77,7 +81,7 @@ defmodule BubbleExpr.MatcherTest do
     assert {:match, %{}} = Matcher.match("a [1] c", "a b c")
     assert {:match, %{}} = Matcher.match("a [2] c", "a b b c")
 
-    assert {:match, %{"xy" => xy}} = Matcher.match("a [2;=xy] c", "a X Y c")
+    assert {:match, %{"xy" => xy}} = Matcher.match("a [2=xy] c", "a X Y c")
     assert [%{raw: "X"}, %{raw: "Y"}] = xy
   end
 
@@ -86,10 +90,10 @@ defmodule BubbleExpr.MatcherTest do
     assert {:match, %{}} = Matcher.match("hello [0-1] world", "Hello there, world!")
     assert {:match, %{}} = Matcher.match("hello [0-2] world", "Hello you there, world!")
 
-    assert {:match, %{"x" => x}} = Matcher.match("hello [0-2;=x] world", "Hello you, world!")
+    assert {:match, %{"x" => x}} = Matcher.match("hello [0-2=x] world", "Hello you, world!")
     assert [%{raw: "you,"}] = x
 
-    assert {:match, %{"xy" => xy}} = Matcher.match("a [0-2;=xy] c", "a X Y c")
+    assert {:match, %{"xy" => xy}} = Matcher.match("a [0-2=xy] c", "a X Y c")
     assert [%{raw: "X"}, %{raw: "Y"}] = xy
   end
 
@@ -101,11 +105,11 @@ defmodule BubbleExpr.MatcherTest do
     assert :nomatch = Matcher.match("hello [2-2] world", "Hello there world!")
     assert :nomatch = Matcher.match("hello [2-3] world", "Hello there world!")
 
-    assert :nomatch = Matcher.match("hello [10-] world", "Hello there world!")
-    assert {:match, %{"all" => all}} = Matcher.match("hello [1-;=all]", "Hello a b c d!")
-    # non-greedy
-    assert 1 == length(all)
+    assert :nomatch = Matcher.match("hello [10+] world", "Hello there world!")
+    # assert {:match, %{"all" => all}} = Matcher.match("hello [1-=all]", "Hello a b c d!")
+    # # non-greedy
+    # assert 1 == length(all)
 
-    assert :nomatch = Matcher.match("hello [10-]", "Hello a b c d!")
+    assert :nomatch = Matcher.match("hello [10+]", "Hello a b c d!")
   end
 end
