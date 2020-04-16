@@ -94,19 +94,18 @@ defmodule BubbleExpr.Matcher do
     {add, ts_remaining}
   end
 
+  defp match_eat_tokens({n, _m}, _rules, ts_remaining, _add) when n > length(ts_remaining) do
+    :nomatch
+  end
+
   defp match_eat_tokens({n, n}, _rules, ts_remaining, add) do
     {left, right} = Enum.split(ts_remaining, n)
     {Enum.reverse(left) ++ add, right}
   end
 
-  defp match_eat_tokens({n, _m}, _rules, ts_remaining, _add) when n > length(ts_remaining) do
-    :nomatch
-  end
-
   defp match_eat_tokens({n, m}, rules, ts_remaining, add) when n > 0 do
     {left, right} = Enum.split(ts_remaining, n)
     {Enum.reverse(left), right}
-
     m = prevent_infinity(m, n, ts_remaining)
     match_eat_tokens({0, m - n}, rules, right, add ++ Enum.reverse(left))
   end

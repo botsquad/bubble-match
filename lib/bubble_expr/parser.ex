@@ -146,6 +146,7 @@ defmodule BubbleExpr.Parser do
     case rule_seq(input) do
       {:ok, [parsed], "", _, _, _} ->
         # Validator.validate(parsed)
+        parsed = ensure_eat_before_rules(parsed, nil)
 
         {:ok, %BubbleExpr{ast: parsed}}
 
@@ -153,4 +154,27 @@ defmodule BubbleExpr.Parser do
         {:error, "Parse error near \"#{remain}\""}
     end
   end
+
+  defp ensure_eat_before_rules(rules, prev) do
+    Enum.reduce(rules, {prev, []}, fn rule, {last_rule_type, new_rules} ->
+      {type, data, ctl} = rule
+
+      if type != :any and last_rule_type != :any do
+        data = ensure_eat_before_rules_inner(data)
+        {type, [{type, data, ctl}, {:any, [], [eat: {0, :infinity}]} | new_rules]}
+      else
+        {type, [rule | new_rules]}
+      end
+    end)
+    |> elem(1)
+    |> Enum.reverse()
+
+    #    |> IO.inspect(label: "x")
+  end
+
+  defp ensure_eat_before_rules_inner(list_of_rules) when is_list(list_of_rules) do
+    list_of_rules |> Enum.map(&ensure_eat_before_rules(&1, :any))
+  end
+
+  defp ensure_eat_before_rules_inner(data), do: data
 end
