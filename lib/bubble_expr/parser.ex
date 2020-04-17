@@ -170,20 +170,26 @@ defmodule BubbleExpr.Parser do
 
   # defparsec(:parse, parsec(:rule_seq))
   def parse(input) do
-    case rule_seq(String.trim(input)) do
-      {:ok, [parsed], "", _, _, _} ->
-        # Validator.validate(parsed)
-        parsed =
-          parsed
-          |> expand_permutations()
-          |> ensure_eat_before_rules(nil)
+    case String.trim(input) do
+      "" ->
+        {:ok, %BubbleExpr{}}
 
-        # IO.inspect(parsed, label: "parsed")
+      input ->
+        case rule_seq(input) do
+          {:ok, [parsed], "", _, _, _} ->
+            # Validator.validate(parsed)
+            parsed =
+              parsed
+              |> expand_permutations()
+              |> ensure_eat_before_rules(nil)
 
-        {:ok, %BubbleExpr{ast: parsed}}
+            # IO.inspect(parsed, label: "parsed")
 
-      {:ok, _parsed, remain, _, _, _} ->
-        {:error, "Parse error near \"#{remain}\""}
+            {:ok, %BubbleExpr{ast: parsed}}
+
+          {:ok, _parsed, remain, _, _, _} ->
+            {:error, "Parse error near \"#{remain}\""}
+        end
     end
   end
 

@@ -4,6 +4,8 @@ defmodule BubbleExpr.ParserTest do
   alias BubbleExpr.Parser
 
   @valid [
+    "",
+    "  ",
     "abc def (a)",
     "x y (a \"hello World\" San | b (y | x) c)",
     "a [0] b",
