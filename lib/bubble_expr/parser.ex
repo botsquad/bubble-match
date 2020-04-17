@@ -189,6 +189,9 @@ defmodule BubbleExpr.Parser do
 
           {:ok, _parsed, remain, _, _, _} ->
             {:error, "Parse error near \"#{remain}\""}
+
+          {:error, _, remain, _, _, _} ->
+            {:error, "Parse error near \"#{remain}\""}
         end
     end
   end

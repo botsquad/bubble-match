@@ -18,13 +18,17 @@ defmodule BubbleExpr.ParserTest do
     "< a < b c > > d"
   ]
 
+  @invalid [
+    "("
+  ]
+
   test "parser" do
     for sentence <- @valid do
       assert {:ok, _ast} = Parser.parse(sentence)
-      # IO.puts("")
-      # IO.puts("----------")
-      # IO.inspect(sentence, label: "sentence")
-      # IO.inspect(ast, label: "ast")
+    end
+
+    for sentence <- @invalid do
+      assert {:error, _message} = Parser.parse(sentence)
     end
   end
 
