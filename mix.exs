@@ -21,7 +21,8 @@ defmodule BubbleExpr.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:nimble_parsec, "~> 0.5"}
+      {:nimble_parsec, "~> 0.5"},
+      {:jason, "~> 1.0"}
     ]
   end
 end

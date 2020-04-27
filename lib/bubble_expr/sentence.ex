@@ -2,6 +2,7 @@ defmodule BubbleExpr.Sentence do
   defstruct text: nil, tokenizations: []
   #
   alias BubbleExpr.Sentence.Tokenizer
+  alias BubbleExpr.Token
 
   alias __MODULE__, as: M
 
@@ -33,5 +34,9 @@ defmodule BubbleExpr.Sentence do
     # end
 
     m
+  end
+
+  def from_spacy(%{"text" => text, "tokens" => tokens, "ents" => ents}) do
+    %M{text: text, tokenizations: [Enum.map(tokens, &Token.from_spacy/1)]}
   end
 end

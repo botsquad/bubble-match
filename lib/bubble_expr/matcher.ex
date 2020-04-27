@@ -1,5 +1,5 @@
 defmodule BubbleExpr.Matcher do
-  alias BubbleExpr.{Parser, Sentence}
+  alias BubbleExpr.{Parser, Sentence, Token}
 
   def match(expr, input) when is_binary(expr) do
     with {:ok, expr} <- Parser.parse(expr) do
@@ -76,7 +76,7 @@ defmodule BubbleExpr.Matcher do
   end
 
   defp match_rules([{:word, word, ctl} | _] = rules, [t | _] = ts_remaining, ts_match, context) do
-    test = fn -> t.value == word end
+    test = fn -> Token.test(t, word) end
     boolean_match(t, test, ctl, context, rules, ts_remaining, ts_match, context)
   end
 
