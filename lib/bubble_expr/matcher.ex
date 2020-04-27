@@ -13,9 +13,15 @@ defmodule BubbleExpr.Matcher do
   end
 
   def match(%BubbleExpr{} = expr, %Sentence{} = sentence) do
-    with {:match, _, _, context} <- match_rules(expr.ast, sentence.tokens, [], %{}) do
-      {:match, context}
-    end
+    Enum.reduce_while(sentence.tokenizations, :nomatch, fn tokens, acc ->
+      case match_rules(expr.ast, tokens, [], %{}) do
+        {:match, _, _, context} ->
+          {:halt, {:match, context}}
+
+        :nomatch ->
+          {:cont, acc}
+      end
+    end)
   end
 
   defp match_rules([], ts_remaining, ts_match, context) do

@@ -28,7 +28,7 @@ defmodule BubbleExpr.MatcherTest do
 
   test "regex with capturing" do
     assert {:match, %{"zip" => [t]}} = Matcher.match("/\\d+/[=zip]", "foo 1234 lala")
-    assert "1234" == t.raw
+    assert "1234 " == t.raw
   end
 
   test "OR group" do
@@ -48,12 +48,12 @@ defmodule BubbleExpr.MatcherTest do
 
   test "capturing" do
     assert {:match, %{"greeting" => tokens}} = Matcher.match("hello[=greeting]", "Hello, world!")
-    assert [%{raw: "Hello,"}] = tokens
+    assert [%{raw: "Hello"}] = tokens
 
     assert {:match, %{"greeting" => tokens}} =
              Matcher.match("(hello world)[=greeting]", "boohoo Hello, world! Bye")
 
-    assert [%{raw: "Hello,"}, %{raw: "world!"}] = tokens
+    assert [%{raw: "Hello"}, %{raw: ", "}, %{raw: "world"}] = tokens
 
     assert {:match, %{"greeting" => greeting, "planet" => [planet]}} =
              Matcher.match(
@@ -61,8 +61,8 @@ defmodule BubbleExpr.MatcherTest do
                "boohoo Hello, world! Bye"
              )
 
-    assert [%{raw: "Hello,"}, %{raw: "world!"}] = greeting
-    assert %{raw: "world!"} = planet
+    assert [%{raw: "Hello"}, %{raw: ", "}, %{raw: "world"}] = greeting
+    assert %{raw: "world"} = planet
   end
 
   test "[Start]" do
@@ -71,7 +71,7 @@ defmodule BubbleExpr.MatcherTest do
   end
 
   test "[End]" do
-    assert {:match, %{}} = Matcher.match("world [End]", "Hello, world!")
+    assert {:match, %{}} = Matcher.match("world [End]", "Hello, world")
     assert :nomatch = Matcher.match("world [End]", "The world is ending")
   end
 
@@ -88,33 +88,33 @@ defmodule BubbleExpr.MatcherTest do
     assert :nomatch = Matcher.match("[2]", "hello")
     assert :nomatch = Matcher.match("[100]", "a b c d e")
 
-    assert {:match, %{}} = Matcher.match("hello [0] world", "Hello, world!")
+    assert {:match, %{}} = Matcher.match("hello [0] world", "Hello world!")
     assert :nomatch = Matcher.match("hello [0] world", "Hello there, world!")
 
     assert {:match, %{}} = Matcher.match("a [1] c", "a b c")
     assert {:match, %{}} = Matcher.match("a [2] c", "a b b c")
 
     assert {:match, %{"xy" => xy}} = Matcher.match("a [2=xy] c", "a X Y c")
-    assert [%{raw: "X"}, %{raw: "Y"}] = xy
+    assert [%{raw: "X "}, %{raw: "Y "}] = xy
   end
 
   test "[0-N]" do
     assert {:match, %{}} = Matcher.match("hello [0-1] world", "Hello, world!")
-    assert {:match, %{}} = Matcher.match("hello [0-1] world", "Hello there, world!")
-    assert {:match, %{}} = Matcher.match("hello [0-2] world", "Hello you there, world!")
+    assert {:match, %{}} = Matcher.match("hello [0-1] world", "Hello there world!")
+    assert {:match, %{}} = Matcher.match("hello [0-2] world", "Hello you there world!")
 
-    assert {:match, %{"x" => x}} = Matcher.match("hello [0-2=x] world", "Hello you, world!")
-    assert [%{raw: "you,"}] = x
+    assert {:match, %{"x" => x}} = Matcher.match("hello [0-2=x] world", "Hello you world!")
+    assert [%{raw: "you "}] = x
 
     assert {:match, %{"xy" => xy}} = Matcher.match("a [0-2=xy] c", "a X Y c")
-    assert [%{raw: "X"}, %{raw: "Y"}] = xy
+    assert [%{raw: "X "}, %{raw: "Y "}] = xy
   end
 
   test "[N-M]" do
-    assert :nomatch = Matcher.match("hello [1-1] world", "Hello, world!")
-    assert {:match, %{}} = Matcher.match("hello [1-1] world", "Hello there, world!")
-    assert {:match, %{}} = Matcher.match("hello [1-2] world", "Hello there, you world!")
-    assert {:match, %{}} = Matcher.match("hello [2-2] world", "Hello there, you world!")
+    assert :nomatch = Matcher.match("hello [1-1] world", "Hello world!")
+    assert {:match, %{}} = Matcher.match("hello [1-1] world", "Hello there world!")
+    assert {:match, %{}} = Matcher.match("hello [1-2] world", "Hello there you world!")
+    assert {:match, %{}} = Matcher.match("hello [2-2] world", "Hello there you world!")
     assert :nomatch = Matcher.match("hello [2-2] world", "Hello there world!")
     assert :nomatch = Matcher.match("hello [2-3] world", "Hello there world!")
 
