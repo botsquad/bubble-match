@@ -36,4 +36,9 @@ defmodule BubbleExpr.ParserTest do
     {:ok, %{ast: ast}} = Parser.parse("[person=a]", expand: false)
     assert [{:entity, "person", [assign: "a"]}] = ast
   end
+
+  test "entities get implicit variable capture" do
+    {:ok, %{ast: ast}} = Parser.parse("[PERSON]")
+    assert [_, {:entity, "PERSON", [assign: "person"]}] = ast
+  end
 end

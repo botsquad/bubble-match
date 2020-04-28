@@ -187,6 +187,7 @@ defmodule BubbleExpr.Parser do
                 _ ->
                   parsed
                   |> expand_permutations()
+                  |> add_implicit_assign()
                   |> ensure_eat_before_rules(nil)
               end
 
@@ -242,4 +243,26 @@ defmodule BubbleExpr.Parser do
 
   defp permutations(list),
     do: for(elem <- list, rest <- permutations(list -- [elem]), do: [elem | rest])
+
+  defp add_implicit_assign(rules) do
+    Enum.map(
+      rules,
+      fn
+        {:entity, kind, meta} = triple ->
+          case meta[:assign] do
+            nil ->
+              {:entity, kind, [{:assign, String.downcase(kind)} | meta]}
+
+            _ ->
+              triple
+          end
+
+        {verb, rules, meta} when is_list(rules) ->
+          {verb, add_implicit_assign(rules), meta}
+
+        x ->
+          x
+      end
+    )
+  end
 end
