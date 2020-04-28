@@ -28,7 +28,7 @@ defmodule BubbleExpr.Token do
 
   def from_spacy_entity(ent, text) do
     {start, end_} = {ent["start"], ent["end"]}
-    raw = String.slice(text, start, end_)
+    raw = String.slice(text, start, end_ - start)
 
     %M{
       type: :entity,
