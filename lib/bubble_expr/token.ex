@@ -18,12 +18,16 @@ defmodule BubbleExpr.Token do
     }
   end
 
-  def test(%M{type: :spacy} = t, word) do
+  def word?(%M{type: :spacy} = t, word) do
     t.value.norm == word || t.value.lemma == word
   end
 
-  def test(%M{} = t, word) do
+  def word?(%M{} = t, word) do
     t.value == word
+  end
+
+  def entity?(%M{} = t, kind) do
+    t.type == :entity and t.value.kind == kind
   end
 
   def from_spacy_entity(ent, text) do

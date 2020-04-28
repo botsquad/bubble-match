@@ -1,7 +1,7 @@
 defmodule BubbleExpr.MatcherTest do
   use ExUnit.Case
 
-  alias BubbleExpr.Matcher
+  alias BubbleExpr.{Matcher, Sentence, Token}
 
   test "matcher" do
     assert {:match, %{}} == Matcher.match("hello", "Hello, world!")
@@ -124,5 +124,15 @@ defmodule BubbleExpr.MatcherTest do
     # assert 1 == length(all)
 
     assert :nomatch = Matcher.match("hello [10+]", "Hello a b c d!")
+  end
+
+  test "entities" do
+    amsterdam = %Token{type: :entity, start: 10, end: 19, value: %{kind: "location"}}
+
+    sentence =
+      Sentence.naive_tokenize("I live in Amsterdam")
+      |> Sentence.add_tokenization([[amsterdam]])
+
+    assert {:match, %{}} = Matcher.match("live in [location]", sentence)
   end
 end

@@ -1,6 +1,5 @@
 defmodule BubbleExpr.Sentence do
   defstruct text: nil, tokenizations: []
-  #
   alias BubbleExpr.Sentence.Tokenizer
   alias BubbleExpr.Token
 
@@ -15,40 +14,40 @@ defmodule BubbleExpr.Sentence do
     %M{text: input, tokenizations: [tokens]}
   end
 
-  def from_spacy(%{"text" => text, "tokens" => tokens, "ents" => ents}) do
+  def from_spacy(%{"text" => text, "tokens" => tokens} = result) do
     raw_tokens = Enum.map(tokens, &Token.from_spacy/1)
 
-    tokenizations =
-      case ents do
-        [] -> [raw_tokens]
-        _ -> [spacy_replace_with_entities(ents, raw_tokens, text), raw_tokens]
-      end
-
-    %M{text: text, tokenizations: tokenizations}
+    %M{text: text, tokenizations: [raw_tokens]}
+    |> add_spacy_entities(result)
   end
 
-  defp spacy_replace_with_entities(ents, raw_tokens, text) do
-    ents
-    |> Enum.map(&Token.from_spacy_entity(&1, text))
-    |> Enum.reduce(raw_tokens, fn entity_token, tokens ->
-      replace_tokens(tokens, [entity_token])
-    end)
+  def add_spacy_entities(%M{} = m, %{"ents" => []}), do: m
+
+  def add_spacy_entities(%M{} = m, %{"ents" => ents, "text" => text}) do
+    sequences = Enum.map(ents, &[Token.from_spacy_entity(&1, text)])
+    add_tokenization(m, sequences)
   end
 
   def add_duckling_entities(%M{} = m, []), do: m
 
   def add_duckling_entities(%M{} = m, ents) do
+    sequences = Enum.map(ents, &[Token.from_duckling_entity(&1)])
+    add_tokenization(m, sequences)
+  end
+
+  def add_tokenization(%M{} = m, replace_token_sequences) do
     raw_tokens = List.last(m.tokenizations)
 
-    duckling_tokenization =
-      ents
-      |> Enum.map(&Token.from_duckling_entity(&1))
-      |> Enum.reduce(raw_tokens, fn entity_token, tokens ->
-        replace_tokens(tokens, [entity_token])
+    tokenization =
+      replace_token_sequences
+      |> Enum.reduce(raw_tokens, fn seq, tokens ->
+        replace_tokens(tokens, seq)
       end)
 
-    %M{m | tokenizations: [duckling_tokenization | m.tokenizations]}
+    %M{m | tokenizations: [tokenization | m.tokenizations]}
   end
+
+  ###
 
   defp replace_tokens(token_sequence, replace_tokens) do
     # find
@@ -65,7 +64,7 @@ defmodule BubbleExpr.Sentence do
       (a ++ replace_tokens ++ b)
       |> reindex()
     else
-      :error
+      raise RuntimeError, "Token not found at start = #{start}, end = #{end_}"
     end
   end
 

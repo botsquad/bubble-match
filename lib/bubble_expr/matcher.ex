@@ -76,7 +76,12 @@ defmodule BubbleExpr.Matcher do
   end
 
   defp match_rules([{:word, word, ctl} | _] = rules, [t | _] = ts_remaining, ts_match, context) do
-    test = fn -> Token.test(t, word) end
+    test = fn -> Token.word?(t, word) end
+    boolean_match(t, test, ctl, context, rules, ts_remaining, ts_match, context)
+  end
+
+  defp match_rules([{:entity, e, ctl} | _] = rules, [t | _] = ts_remaining, ts_match, context) do
+    test = fn -> Token.entity?(t, e) end
     boolean_match(t, test, ctl, context, rules, ts_remaining, ts_match, context)
   end
 

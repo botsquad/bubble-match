@@ -19,6 +19,14 @@ Match regular expressions
 | `/[a-z]+/`   | abcd    | LALA           |
 
 
+Match entities, with the help of Spacy and Duckling preprocessing and
+tokenizing the input:
+
+| Match string | Matches      | Does not match |
+|--------------|--------------|----------------|
+| `[PERSON]`   | George Baker | Hello world    |
+
+
 ## Cheat sheet
 
 Use this cheat sheet whenever you need a quick refresher on

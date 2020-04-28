@@ -14,7 +14,7 @@ defmodule BubbleExpr.Parser do
   @ws [9, 10, 11, 12, 13, 32]
   ws = ignore(ascii_char(@ws) |> concat(repeat(ascii_char(@ws))))
 
-  @az ascii_char(Enum.to_list(?A..?Z) ++ Enum.to_list(?a..?z))
+  @string ascii_string(Enum.to_list(?A..?Z) ++ Enum.to_list(?a..?z), min: 1)
 
   literal =
     ignore(string("\""))
@@ -24,9 +24,7 @@ defmodule BubbleExpr.Parser do
     |> unwrap_and_tag(:literal)
 
   word =
-    @az
-    |> concat(repeat(@az))
-    |> reduce(:to_string)
+    @string
     |> unwrap_and_tag(:word)
 
   or_group =
@@ -87,9 +85,7 @@ defmodule BubbleExpr.Parser do
   # slot assignment
   assign =
     ignore(string("="))
-    |> concat(@az)
-    |> repeat(@az)
-    |> reduce(:to_string)
+    |> concat(@string)
     |> unwrap_and_tag(:assign)
 
   defp to_int(a) do
@@ -113,6 +109,7 @@ defmodule BubbleExpr.Parser do
       symbol.("Start", :start),
       # end of sentence
       symbol.("End", :end),
+      @string |> tag(:entity),
       empty()
     ])
     |> optional(assign)
@@ -121,6 +118,10 @@ defmodule BubbleExpr.Parser do
   defp finalize_rule([a, b, {:assign, v}]) do
     {a, b, c} = finalize_rule([a, b])
     {a, b, Keyword.put(c, :assign, v)}
+  end
+
+  defp finalize_rule([{:any, []}, {:entity, [type]}]) do
+    {:entity, type, []}
   end
 
   defp finalize_rule([{:any, []}, value]) do
@@ -169,7 +170,7 @@ defmodule BubbleExpr.Parser do
   )
 
   # defparsec(:parse, parsec(:rule_seq))
-  def parse(input) do
+  def parse(input, opts \\ []) do
     case String.trim(input) do
       "" ->
         {:ok, %BubbleExpr{}}
@@ -179,11 +180,15 @@ defmodule BubbleExpr.Parser do
           {:ok, [parsed], "", _, _, _} ->
             # Validator.validate(parsed)
             parsed =
-              parsed
-              |> expand_permutations()
-              |> ensure_eat_before_rules(nil)
+              case opts[:expand] do
+                false ->
+                  parsed
 
-            # IO.inspect(parsed, label: "parsed")
+                _ ->
+                  parsed
+                  |> expand_permutations()
+                  |> ensure_eat_before_rules(nil)
+              end
 
             {:ok, %BubbleExpr{ast: parsed}}
 

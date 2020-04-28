@@ -32,9 +32,8 @@ defmodule BubbleExpr.ParserTest do
     end
   end
 
-  test "p2" do
-    #    Parser.parse("[Start] hello[=aa] [0-1=xx] world (a b | b c d)")
-    Parser.parse("(hello world)[=a]")
-    #    |> IO.inspect(label: "x")
+  test "entity" do
+    {:ok, %{ast: ast}} = Parser.parse("[person=a]", expand: false)
+    assert [{:entity, "person", [assign: "a"]}] = ast
   end
 end
