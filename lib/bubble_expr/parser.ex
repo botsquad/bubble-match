@@ -258,7 +258,7 @@ defmodule BubbleExpr.Parser do
           end
 
         {verb, rules, meta} when is_list(rules) ->
-          {verb, add_implicit_assign(rules), meta}
+          {verb, Enum.map(rules, &add_implicit_assign/1), meta}
 
         x ->
           x
