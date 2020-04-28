@@ -44,4 +44,8 @@ defmodule BubbleExpr.ParserTest do
     {:ok, %{ast: ast}} = Parser.parse("([PERSON])")
     assert [_, {:or, [[{:entity, "PERSON", [assign: "person"]}]], []}] = ast
   end
+
+  test "do not error in invalid regex" do
+    assert {:error, _} = Parser.parse("/f[/")
+  end
 end

@@ -176,28 +176,33 @@ defmodule BubbleExpr.Parser do
         {:ok, %BubbleExpr{}}
 
       input ->
-        case rule_seq(input) do
-          {:ok, [parsed], "", _, _, _} ->
-            # Validator.validate(parsed)
-            parsed =
-              case opts[:expand] do
-                false ->
-                  parsed
+        try do
+          case rule_seq(input) do
+            {:ok, [parsed], "", _, _, _} ->
+              # Validator.validate(parsed)
+              parsed =
+                case opts[:expand] do
+                  false ->
+                    parsed
 
-                _ ->
-                  parsed
-                  |> expand_permutations()
-                  |> add_implicit_assign()
-                  |> ensure_eat_before_rules(nil)
-              end
+                  _ ->
+                    parsed
+                    |> expand_permutations()
+                    |> add_implicit_assign()
+                    |> ensure_eat_before_rules(nil)
+                end
 
-            {:ok, %BubbleExpr{ast: parsed}}
+              {:ok, %BubbleExpr{ast: parsed}}
 
-          {:ok, _parsed, remain, _, _, _} ->
-            {:error, "Parse error near \"#{remain}\""}
+            {:ok, _parsed, remain, _, _, _} ->
+              {:error, "Parse error near \"#{remain}\""}
 
-          {:error, _, remain, _, _, _} ->
-            {:error, "Parse error near \"#{remain}\""}
+            {:error, _, remain, _, _, _} ->
+              {:error, "Parse error near \"#{remain}\""}
+          end
+        rescue
+          e in Regex.CompileError ->
+            {:error, "Regex: " <> Exception.message(e)}
         end
     end
   end
