@@ -31,14 +31,41 @@ defmodule BubbleExpr.SentenceTest do
 
   test "from_spacy" do
     sentence = Sentence.from_spacy(@spacy_json)
-    [tokens] = sentence.tokenizations
+    assert [with_ents, raw_tokens] = sentence.tokenizations
 
-    assert ~w(hi there . my name is george) == Enum.map(tokens, & &1.value.norm)
+    assert ~w(hi there . my name is george) == Enum.map(raw_tokens, & &1.value.norm)
+    assert ~w(spacy spacy spacy spacy spacy spacy entity)a == Enum.map(with_ents, & &1.type)
   end
 
   test "match from spacy" do
     sentence = Sentence.from_spacy(@spacy_json)
 
     assert {:match, _} = BubbleExpr.Matcher.match("my name is", sentence)
+  end
+
+  @duckling_json """
+                 [{"body":"the day after tomorrow","start":15,"value":{"values":[{"value":"2020-04-30T00:00:00.000+02:00","grain":"day","type":"value"}],"value":"2020-04-30T00:00:00.000+02:00","grain":"day","type":"value"},"end":37,"dim":"time","latent":false},{"body":"10 miles","start":39,"value":{"value":10,"type":"value","unit":"mile"},"end":47,"dim":"distance","latent":false}]
+                 """
+                 |> Jason.decode!()
+
+  test "add duckling entities" do
+    sentence =
+      Sentence.naive_tokenize("My birthday is the day after tomorrow, 10 miles away")
+      |> Sentence.add_duckling_entities(@duckling_json)
+
+    assert [with_ents, _raw_tokens] = sentence.tokenizations
+
+    assert [
+             %{value: "my"},
+             %{value: "birthday"},
+             %{value: "is"},
+             %{type: :entity, value: %{kind: "time", value: %{"grain" => "day"}}},
+             _comma,
+             %{
+               type: :entity,
+               value: %{kind: "distance", value: %{"unit" => "mile", "value" => 10}}
+             },
+             _awai
+           ] = with_ents
   end
 end

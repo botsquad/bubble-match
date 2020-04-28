@@ -64,11 +64,14 @@ defmodule BubbleExpr.Sentence.Tokenizer do
           {t, :punct, t <> ws}
       end
 
+    start = offset - String.length(raw)
+    end_ = start + String.length(String.trim(raw))
+
     {[
        %Token{
          raw: raw,
-         start: offset - String.length(raw),
-         end: offset,
+         start: start,
+         end: end_,
          value: value,
          type: type
        }

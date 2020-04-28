@@ -6,7 +6,7 @@ defmodule BubbleExpr.Sentence.TokenizerTest do
   test "tokenize" do
     assert [hello, comma, _, _] = Tokenizer.tokenize("Hello, world.")
 
-    assert %{value: "hello", raw: "Hello"} = hello
-    assert %{value: ",", raw: ", "} = comma
+    assert %{value: "hello", raw: "Hello", start: 0, end: 5} = hello
+    assert %{value: ",", raw: ", ", start: 5, end: 6} = comma
   end
 end

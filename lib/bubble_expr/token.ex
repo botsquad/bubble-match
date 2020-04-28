@@ -25,4 +25,29 @@ defmodule BubbleExpr.Token do
   def test(%M{} = t, word) do
     t.value == word
   end
+
+  def from_spacy_entity(ent, text) do
+    {start, end_} = {ent["start"], ent["end"]}
+    raw = String.slice(text, start, end_)
+
+    %M{
+      type: :entity,
+      value: %{kind: ent["label"], provider: "spacy", value: raw},
+      start: start,
+      end: end_,
+      raw: raw
+    }
+  end
+
+  def from_duckling_entity(ent) do
+    {start, end_} = {ent["start"], ent["end"]}
+
+    %M{
+      type: :entity,
+      value: %{kind: ent["dim"], provider: "duckling", value: ent["value"]},
+      start: start,
+      end: end_,
+      raw: ent["body"]
+    }
+  end
 end

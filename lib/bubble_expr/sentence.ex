@@ -15,28 +15,65 @@ defmodule BubbleExpr.Sentence do
     %M{text: input, tokenizations: [tokens]}
   end
 
-  @doc """
-  Adds an alternative tokenization by replacing tokens
-  """
-  def add_tokenization(%M{} = m, new_tokens) do
-    # for each existing tokenization, find the start / end index to be replaced
+  def from_spacy(%{"text" => text, "tokens" => tokens, "ents" => ents}) do
+    raw_tokens = Enum.map(tokens, &Token.from_spacy/1)
 
-    # start: find the tokens where
-    # -
+    tokenizations =
+      case ents do
+        [] -> [raw_tokens]
+        _ -> [spacy_replace_with_entities(ents, raw_tokens, text), raw_tokens]
+      end
 
-    # {start_tokens, _} = Enum.split(m.tokens, start_index)
-    # {_, end_tokens} = Enum.split(m.tokens, end_index)
-    # m = %M{m | tokens: start_tokens ++ new_tokens ++ end_tokens}
-
-    # # ensure we are still a valid sentence
-    # if m.text != Enum.join(Enum.map(m.tokens, & &1.raw), " ") do
-    #   raise RuntimeError, "replace_tokens differ from original sentence"
-    # end
-
-    m
+    %M{text: text, tokenizations: tokenizations}
   end
 
-  def from_spacy(%{"text" => text, "tokens" => tokens, "ents" => ents}) do
-    %M{text: text, tokenizations: [Enum.map(tokens, &Token.from_spacy/1)]}
+  defp spacy_replace_with_entities(ents, raw_tokens, text) do
+    ents
+    |> Enum.map(&Token.from_spacy_entity(&1, text))
+    |> Enum.reduce(raw_tokens, fn entity_token, tokens ->
+      replace_tokens(tokens, [entity_token])
+    end)
+  end
+
+  def add_duckling_entities(%M{} = m, []), do: m
+
+  def add_duckling_entities(%M{} = m, ents) do
+    raw_tokens = List.last(m.tokenizations)
+
+    duckling_tokenization =
+      ents
+      |> Enum.map(&Token.from_duckling_entity(&1))
+      |> Enum.reduce(raw_tokens, fn entity_token, tokens ->
+        replace_tokens(tokens, [entity_token])
+      end)
+
+    %M{m | tokenizations: [duckling_tokenization | m.tokenizations]}
+  end
+
+  defp replace_tokens(token_sequence, replace_tokens) do
+    # find
+    start = List.first(replace_tokens).start
+    end_ = List.last(replace_tokens).end
+
+    start_idx = Enum.find_index(token_sequence, &(&1.start == start))
+    end_idx = Enum.find_index(token_sequence, &(&1.end == end_))
+
+    if start_idx != nil and end_idx != nil and end_idx >= start_idx do
+      {a, _} = Enum.split(token_sequence, start_idx)
+      {_, b} = Enum.split(token_sequence, end_idx + 1)
+
+      (a ++ replace_tokens ++ b)
+      |> reindex()
+    else
+      :error
+    end
+  end
+
+  defp reindex(tokens) do
+    tokens
+    |> Enum.with_index()
+    |> Enum.map(fn {t, index} ->
+      %{t | index: index}
+    end)
   end
 end
