@@ -36,45 +36,6 @@ defmodule BubbleExpr.Matcher do
     :nomatch
   end
 
-  defp match_rules([{:control_block, block} | _] = rules, ts_remaining, ts_match, context) do
-    Enum.reduce(block, {:match, ts_remaining, ts_match, context}, fn
-      _, :nomatch ->
-        :nomatch
-
-      :start, {:match, ts_r, ts_m, c} ->
-        with {:match, ts_r, ts_m, c} <- match_rules(tl(rules), ts_r, ts_m, c) do
-          first_token = List.last(ts_m)
-
-          if !first_token || first_token.index == 0 do
-            {:match, ts_r, ts_m, c}
-          else
-            :nomatch
-          end
-        end
-
-      :end, {:match, ts_r, ts_m, c} ->
-        if ts_remaining == [] do
-          {:match, ts_r, ts_m, c}
-        else
-          :nomatch
-        end
-
-      {:eat, n}, {:match, ts_r, ts_m, c} ->
-        with {:match, ts_r, ts_m1, c} when length(ts_m1) == n <-
-               match_rules(tl(rules), ts_r, [], c) do
-          {:match, ts_r, ts_m1 ++ ts_m, c}
-        else
-          e ->
-            IO.inspect(e, label: "e")
-
-            :nomatch
-        end
-
-      t, _ ->
-        raise "Unimplemented :control_block instruction: #{inspect(t)}"
-    end)
-  end
-
   defp match_rules([{:word, word, ctl} | _] = rules, [t | _] = ts_remaining, ts_match, context) do
     test = fn -> Token.word?(t, word) end
     boolean_match(t, test, ctl, context, rules, ts_remaining, ts_match, context)

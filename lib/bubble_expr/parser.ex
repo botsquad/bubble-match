@@ -1,8 +1,6 @@
 defmodule BubbleExpr.Parser do
   import NimbleParsec
 
-  # alias BubbleExpr.Validator
-
   # ws       := [ ]+
   # word     := (A-Za-z)+
   # or_group := '(' ws? rule_seq (ws '|' ws rule_seq)* ws? ')'
@@ -179,7 +177,6 @@ defmodule BubbleExpr.Parser do
         try do
           case rule_seq(input) do
             {:ok, [parsed], "", _, _, _} ->
-              # Validator.validate(parsed)
               parsed =
                 case opts[:expand] do
                   false ->
