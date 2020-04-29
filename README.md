@@ -89,14 +89,18 @@ Make sure rule words are first and/or last: [Start], [End]
 - `[Start] rule1` — rule1 must be the first word
 - `rule1 [End]` — rule1 must be the last word
 
-### Numbers [NOT IMPLEMENTED YET]
+### Numbers
 
 Match any number: `[number]`
 
 - [number] — match any number
+
+Implemented using the Duckling `number` entity.
+
+**Number ranges are not implemented yet**:
+
 - [number=50+] — match any number greater than or equal to 50
 - [number=1-100] — match any number from 1 to 100
-- [number=1-100=COUNTER]— match any number from 1 to 100, store the number in a counter
 
 ### Unordered Matching
 
@@ -129,10 +133,9 @@ Repeating a construct multiple times:
 Almost any of the above pattern matching rules can be combined.
 
 - `rule1 [1+] !rule2 rule3` — at least 1 word occurs between rule1 and rule3, and that 1 word cannot be rule2
-- `( rule1 [0] rule2, rule3 )` — no words can occur between rule1 and rule2
-- `< rule1, ( rule2, rule3 ) >` — rule1 must be matched, at least 1 of rule2 and/or rule3 must occur
+- `( rule1 [0] rule2 rule3 )` — no words can occur between rule1 and rule2
+- `< rule1 ( rule2 | rule3 ) >` — rule1 must be matched, at least 1 of rule2 and/or rule3 must occur
 - `rule1 rule2? "rule3"` — rule1 must be matched, rule2 may or may not be matched, and rule3 must be matched verbatim
-
 
 
 ## Definition
