@@ -30,6 +30,10 @@ defmodule BubbleExpr.Token do
     t.type == :entity and t.value.kind == kind
   end
 
+  def regex?(%M{} = t, re) do
+    Regex.match?(re, t.raw)
+  end
+
   def from_spacy_entity(ent, text) do
     {start, end_} = {ent["start"], ent["end"]}
     raw = String.slice(text, start, end_ - start)

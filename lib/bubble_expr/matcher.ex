@@ -85,17 +85,17 @@ defmodule BubbleExpr.Matcher do
     boolean_match(t, test, ctl, context, rules, ts_remaining, ts_match, context)
   end
 
+  defp match_rules([{:regex, re, ctl} | _] = rules, [t | _] = ts_remaining, ts_match, context) do
+    test = fn -> Token.regex?(t, re) end
+    boolean_match(t, test, ctl, context, rules, ts_remaining, ts_match, context)
+  end
+
   defp match_rules([{:or, seqs, ctl} | _] = rules, ts_remaining, ts_match, context) do
     with {:match, ts_remaining, inner, context} <-
            match_any_list_of_rules(seqs, ts_remaining, [], context) do
       context = opt_assign(ctl, inner, context)
       match_rules(tl(rules), ts_remaining, inner ++ ts_match, context)
     end
-  end
-
-  defp match_rules([{:regex, re, ctl} | _] = rules, [t | _] = ts_remaining, ts_match, context) do
-    test = fn -> Regex.match?(re, t.raw) end
-    boolean_match(t, test, ctl, context, rules, ts_remaining, ts_match, context)
   end
 
   defp match_rules([{:literal, str, _} | _] = rules, [t | _] = ts_remaining, ts_match, context) do
