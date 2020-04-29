@@ -135,4 +135,11 @@ defmodule BubbleExpr.MatcherTest do
 
     assert {:match, %{}} = Matcher.match("live in [location]", sentence)
   end
+
+  @tag skip: true
+  test "repetitions" do
+    assert {:match, %{"m" => [_, _]}} = Matcher.match("a[2=m]", "a a")
+    assert {:match, %{"m" => [_, _]}} = Matcher.match("a[2=m]", "a a a")
+    assert :nomatch = Matcher.match("a[4]", "a a a")
+  end
 end
