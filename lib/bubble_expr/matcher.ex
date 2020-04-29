@@ -36,30 +36,43 @@ defmodule BubbleExpr.Matcher do
     :nomatch
   end
 
-  defp match_rules([{:word, word, ctl} | _] = rules, [t | _] = ts_remaining, ts_match, context) do
-    test = fn -> Token.word?(t, word) end
-    boolean_match(t, test, ctl, context, rules, ts_remaining, ts_match, context)
-  end
-
-  defp match_rules([{:entity, e, ctl} | _] = rules, [t | _] = ts_remaining, ts_match, context) do
-    test = fn -> Token.entity?(t, e) end
-    boolean_match(t, test, ctl, context, rules, ts_remaining, ts_match, context)
-  end
-
-  defp match_rules([{:regex, re, ctl} | _] = rules, [t | _] = ts_remaining, ts_match, context) do
-    test = fn -> Token.regex?(t, re) end
-    boolean_match(t, test, ctl, context, rules, ts_remaining, ts_match, context)
-  end
-
-  defp match_rules([{:or, seqs, ctl} | _] = rules, ts_remaining, ts_match, context) do
+  defp match_rules([{_, _, ctl} = rule | rest], ts_remaining, ts_match, context) do
     with {:match, ts_remaining, inner, context} <-
-           match_any_list_of_rules(seqs, ts_remaining, [], context) do
+           match_rule(rule, rest, ts_remaining, context) do
       context = opt_assign(ctl, inner, context)
-      match_rules(tl(rules), ts_remaining, inner ++ ts_match, context)
+      match_rules(rest, ts_remaining, inner ++ ts_match, context)
     end
   end
 
-  defp match_rules([{:literal, str, _} | _] = rules, [t | _] = ts_remaining, ts_match, context) do
+  defp match_rule({:word, word, _}, _rls_remaining, ts_remaining, context) do
+    fn t -> Token.word?(t, word) end
+    |> boolean_match(ts_remaining, context)
+  end
+
+  defp match_rule({:entity, e, _}, _rls_remaining, ts_remaining, context) do
+    fn t -> Token.entity?(t, e) end
+    |> boolean_match(ts_remaining, context)
+  end
+
+  defp match_rule({:regex, re, _}, _rls_remaining, ts_remaining, context) do
+    fn t -> Token.regex?(t, re) end
+    |> boolean_match(ts_remaining, context)
+  end
+
+  defp match_rule({:or, seqs, _}, _rls_remaining, ts_remaining, context) do
+    with {:match, ts_remaining, inner, context} <-
+           match_any_list_of_rules(seqs, ts_remaining, [], context) do
+      {:match, ts_remaining, inner, context}
+    end
+  end
+
+  defp match_rule({:any, {:eat, range}, _}, rls_remaining, ts_remaining, context) do
+    with {eaten, ts_remaining} <- match_eat_tokens(range, rls_remaining, ts_remaining, []) do
+      {:match, ts_remaining, eaten, context}
+    end
+  end
+
+  defp match_rule({:literal, str, _}, _rls_remaining, [t | _] = ts_remaining, context) do
     offset = t.start
 
     ts_remaining
@@ -88,30 +101,25 @@ defmodule BubbleExpr.Matcher do
         :nomatch
 
       {matched, remaining} ->
-        match_rules(tl(rules), remaining, matched ++ ts_match, context)
+        {:match, remaining, matched, context}
     end
   end
 
-  defp match_rules([{:any, {:eat, range}, ctl} | _] = rules, ts_remaining, ts_match, context) do
-    with {eaten, ts_remaining} <- match_eat_tokens(range, tl(rules), ts_remaining, []) do
-      context = opt_assign(ctl, eaten, context)
-      match_rules(tl(rules), ts_remaining, eaten ++ ts_match, context)
-    end
-  end
-
-  defp match_rules([{:any, :start, _} | _] = rules, ts_remaining, ts_match, context) do
+  defp match_rule({:any, :start, _}, _rls_remaining, ts_remaining, context) do
     case ts_remaining do
       [%{index: 0} | _] ->
-        match_rules(tl(rules), ts_remaining, ts_match, context)
+        {:match, ts_remaining, [], context}
 
       _ ->
         :nomatch
     end
   end
 
-  defp match_rules([{:any, :end, _} | _], _ts_remaining, _ts_match, _context) do
+  defp match_rule({:any, :end, _}, _rls_remaining, _ts_remaining, _context) do
     :nomatch
   end
+
+  ###
 
   defp match_eat_tokens(nil, _rules, ts_remaining, add) do
     {add, ts_remaining}
@@ -153,11 +161,10 @@ defmodule BubbleExpr.Matcher do
   defp prevent_infinity(:infinity, n, tokens), do: n + length(tokens)
   defp prevent_infinity(m, _n, _tokens), do: m
 
-  defp boolean_match(t, test, ctl, context, rules, ts_remaining, ts_match, context) do
-    case test.() do
+  defp boolean_match(test, [t | ts_remaining], context) do
+    case test.(t) do
       true ->
-        context = opt_assign(ctl, [t], context)
-        match_rules(tl(rules), tl(ts_remaining), [t | ts_match], context)
+        {:match, ts_remaining, [t], context}
 
       false ->
         :nomatch
