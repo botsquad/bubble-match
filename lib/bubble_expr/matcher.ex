@@ -37,10 +37,44 @@ defmodule BubbleExpr.Matcher do
   end
 
   defp match_rules([{_, _, ctl} = rule | rest], ts_remaining, ts_match, context) do
+    repeat = ctl[:repeat] || {1, 1}
+
     with {:match, ts_remaining, inner, context} <-
-           match_rule(rule, rest, ts_remaining, context) do
+           match_rule_repeat(repeat, rule, rest, ts_remaining, [], context) do
       context = opt_assign(ctl, inner, context)
       match_rules(rest, ts_remaining, inner ++ ts_match, context)
+    end
+  end
+
+  defp match_rule_repeat({1, 1}, rule, rls_remaining, ts_remaining, ts_match, context) do
+    with {:match, ts_remaining, inner, context} <-
+           match_rule(rule, rls_remaining, ts_remaining, context) do
+      {:match, ts_remaining, inner ++ ts_match, context}
+    end
+  end
+
+  defp match_rule_repeat({n, n}, rule, rls_remaining, ts_remaining, ts_match, context)
+       when n > 1 do
+    with {:match, ts_remaining, inner, context} <-
+           match_rule(rule, rls_remaining, ts_remaining, context) do
+      match_rule_repeat(
+        {n - 1, n - 1},
+        rule,
+        rls_remaining,
+        ts_remaining,
+        inner ++ ts_match,
+        context
+      )
+    end
+  end
+
+  defp match_rule_repeat({n, m}, rule, rls_remaining, ts_remaining, ts_match, context)
+       when m > n do
+    m = prevent_infinity(m, n, ts_remaining)
+
+    with :nomatch <-
+           match_rule_repeat({m, m}, rule, rls_remaining, ts_remaining, ts_match, context) do
+      match_rule_repeat({n, m - 1}, rule, rls_remaining, ts_remaining, ts_match, context)
     end
   end
 
@@ -160,6 +194,10 @@ defmodule BubbleExpr.Matcher do
 
   defp prevent_infinity(:infinity, n, tokens), do: n + length(tokens)
   defp prevent_infinity(m, _n, _tokens), do: m
+
+  defp boolean_match(_test, [], _context) do
+    :nomatch
+  end
 
   defp boolean_match(test, [t | ts_remaining], context) do
     case test.(t) do
