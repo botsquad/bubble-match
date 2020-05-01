@@ -9,17 +9,27 @@ defmodule BubbleExpr.SentenceTest do
               |> Jason.decode!()
 
   test "from_spacy" do
-    sentence = Sentence.from_spacy(@spacy_json)
-    assert [with_ents, raw_tokens] = sentence.tokenizations
+    [hithere, mynameis] = Sentence.sentences_from_spacy(@spacy_json)
 
-    assert ~w(hi there . my name is george) == Enum.map(raw_tokens, & &1.value.norm)
-    assert ~w(spacy spacy spacy spacy spacy spacy entity)a == Enum.map(with_ents, & &1.type)
+    assert [[_, _, _]] = hithere.tokenizations
+
+    assert [with_ents, raw_tokens] = mynameis.tokenizations
+
+    assert ~w(my name is george) == Enum.map(raw_tokens, & &1.value.norm)
+    assert ~w(spacy spacy spacy entity)a == Enum.map(with_ents, & &1.type)
   end
 
   test "match from spacy" do
-    sentence = Sentence.from_spacy(@spacy_json)
+    all = [hithere, mynameis] = Sentence.sentences_from_spacy(@spacy_json)
 
-    assert {:match, _} = BubbleExpr.Matcher.match("my name is", sentence)
+    assert {:match, _} = BubbleExpr.Matcher.match("my name is", mynameis)
+    assert :nomatch = BubbleExpr.Matcher.match("my name is", hithere)
+
+    assert {:match, _} = BubbleExpr.Matcher.match("[Start] my name is", all)
+    assert {:match, _} = BubbleExpr.Matcher.match("hi there \".\" [End]", all)
+    assert {:match, m} = BubbleExpr.Matcher.match("[PERSON]", all)
+
+    assert [%{value: %{kind: "PERSON", value: "George"}}] = m["person"]
   end
 
   @duckling_json """

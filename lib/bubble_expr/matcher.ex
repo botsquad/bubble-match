@@ -1,6 +1,16 @@
 defmodule BubbleExpr.Matcher do
   alias BubbleExpr.{Parser, Sentence, Token}
 
+  def match(expr, input) when is_list(input) do
+    Enum.reduce(input, :nomatch, fn
+      input, :nomatch ->
+        match(expr, input)
+
+      _, result ->
+        result
+    end)
+  end
+
   def match(expr, input) when is_binary(expr) do
     with {:ok, expr} <- Parser.parse(expr) do
       match(expr, input)

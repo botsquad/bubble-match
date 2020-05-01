@@ -14,16 +14,34 @@ defmodule BubbleExpr.Sentence do
     %M{text: input, tokenizations: [tokens]}
   end
 
-  def from_spacy(%{"text" => text, "tokens" => tokens} = result) do
-    raw_tokens = Enum.map(tokens, &Token.from_spacy/1)
-
-    %M{text: text, tokenizations: [raw_tokens]}
-    |> add_spacy_entities(result)
+  def sentences_from_spacy(result) do
+    spacy_sentences_split(result["sents"], result, [])
+    |> Enum.map(fn {text, tokens, entities} ->
+      %M{text: text, tokenizations: [tokens]}
+      |> add_spacy_entities(entities, result)
+    end)
   end
 
-  def add_spacy_entities(%M{} = m, %{"ents" => []}), do: m
+  defp spacy_sentences_split([], _result, acc) do
+    Enum.reverse(acc)
+  end
 
-  def add_spacy_entities(%M{} = m, %{"ents" => ents, "text" => text}) do
+  defp spacy_sentences_split([%{"start" => start, "end" => end_} | rest], result, acc) do
+    s_text = String.slice(result["text"], start, end_ - start)
+
+    s_tokens =
+      result["tokens"]
+      |> Enum.filter(&(&1["start"] >= start && &1["end"] <= end_))
+      |> Enum.map(&Token.from_spacy/1)
+      |> reindex()
+
+    s_ents = result["ents"] |> Enum.filter(&(&1["start"] >= start && &1["end"] <= end_))
+    spacy_sentences_split(rest, result, [{s_text, s_tokens, s_ents} | acc])
+  end
+
+  def add_spacy_entities(%M{} = m, [], _), do: m
+
+  def add_spacy_entities(%M{} = m, ents, %{"text" => text}) do
     sequences = Enum.map(ents, &[Token.from_spacy_entity(&1, text)])
     add_tokenization(m, sequences)
   end
