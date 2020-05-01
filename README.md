@@ -27,181 +27,54 @@ tokenizing the input:
 | `[PERSON]`   | George Baker | Hello world    |
 
 
-## Cheat sheet
+## Rules overview
 
-Use this cheat sheet whenever you need a quick refresher on
-rule-writing.  Have you reviewed the detailed descriptions of
-pattern-matching yet? If not, take a look at those before using the
-cheat sheet below.
+The match syntax is made up by rules. Each individual has the following syntax:
 
+- Basic words; only alphanumeric characters and the quote characters
+  - matching is done on both the lowercased, normalized version of the
+    word, and on the lemmatization of the word.
 
-> Note: BubbleExpr is heavily inspired on the [Pullstring pattern
-> match language][1]. Pullstring has been acquired by Apple in 2019
-> and all their docs are offline. This cheat sheet is copied and
-> adapted from the now archived Pullstring documentation.
+- `"Literal word sequence"`
+  - Matches a literal piece of text, possibly spread out over multiple tokens.
 
-[1]: https://web.archive.org/web/20170920200146/http://docs.pullstring.com/docs/pattern-matching
+- `_` without any range specifier, matches 1-5 of any available token, greedy.
 
+- Stand-alone range specifier
+  - `[1]` match exactly one token; any token
+  - `[2+]` match 2 or more tokens (greedy)
+  - `[1-3]` match 1 to 3 tokens (greedy)
 
-Valid Characters: Alphanumeric characters, spaces, and apostrophes ' (when used inside a word) are valid within a rule. Any characters used as part of pattern matching syntax are valid. All other characters are only valid if using verbatim.
+- Entity tokens: `[email]` matches a token of type `:entity` with value.kind == `email`
 
-### Basic words
+- Regex tokens: `[/regex/]` matches the given regex against the raw text in the token
 
-- `cookies Martha's` — matches "Those cookies are Martha's."
-- `i like cookies` — matches "Oh, I really like chocolate chip cookies."
+- OR / grouping construct
+  - `( a | b | c )` matches one token consisting of `a`, `b` or `c`
+  - `( a )[3+]` matches 3 or more token consisting of `a`
+  - `( hi | hello )[=greeting]` matches 1 token and stores it in `greeting`
 
-### Synonyms [NOT IMPLEMENTED YET]
+- Permutation construct
+ - `< a b c >` matches any permutation of the sequence `a b c`; `a c b`, or `b a c`, or `c a b`, etc
 
-- `~like` — matches all meanings for the synonym "like"
+- Start / end sentence markers
+- `[Start]` Matches the start of a sentence
+- `[End]` Matches the end of a sentence
 
-### Excluding words [NOT IMPLEMENTED YET]
+   Note that sentences are always matched individually.
 
-Do not match certain words: !
+- Word collections ("concepts")
+  - `~food` matches any token in the `food` collection. Collection resolution is done at expression parse time.
 
-- `!rule1 rule2` — match rule2 and not rule1
 
-### Optional Words
+### Rule modifiers
 
-Optionally match certain words or constructs by appending `?`
+Any rule can have a `[]` block which contains a repetition modifier
+and/or a capture expression.
 
-- `rule1? rule2` — rule1 may or may not appear, always match rule2
+Entity blocks are automatically captured as the entity kind.
 
-### Word Spacing
 
-By default, rules can contain any number of tokens in between them. So the rule `hello world` also matches `hello cruel world`. The number of allowed tokens between two rules can be controlled with a standalone `[ ]` block.
-
-- `rule1 [0] rule2` — no words can appear between rule1 and rule2, they are adjacent.
-- `rule1 [1+] rule2` — at least 1 word between rule1 and rule2
-- `rule1 [2] rule2` — exactly 2 words between rule1 and rule2
-- `rule1 [2-5] rule2` — between 2 and 5 words between rule1 and rule2
-- `rule1 [2-3=LABEL] rule2` — between 2 and 3 words between rule1 and rule2, store the captured words between rule1 and rule2 in LABEL
-
-### Verbatim
-
-Match parts of the original sentence exactly by using double quotes around a rule: `"…"`
-
-- `"rule1"` — rule1 must be matched exactly, with no NLP processing. Can span word tokens (can contain spaces)
-
-### Start / End
-
-Make sure rule words are first and/or last: [Start], [End]
-
-- `[Start] rule1` — rule1 must be the first word
-- `rule1 [End]` — rule1 must be the last word
-
-### Numbers
-
-Match any number: `[number]`
-
-- [number] — match any number
-
-Implemented using the Duckling `number` entity.
-
-**Number ranges are not implemented yet**:
-
-- [number=50+] — match any number greater than or equal to 50
-- [number=1-100] — match any number from 1 to 100
-
-### Unordered Matching
-
-Allow rule words in any order: `< >`
-
-- `< rule1, rule2, rule3 >` — all rule words MUST occur, but may occur in any order
-
-### Matching Optional Words
-
-Specify the number of matches from a set of rules in any order: `( | )`
-
-- `( rule1 | rule2 )` — match rule1 or rule2
-
-### Repeating constructs
-
-Storing User Input: Remember the actual input entered by the user or the number of matches
-
-- `( hello world )[=greeting]` - stores the greeting in the `greeting` slot. All words between `hello` and `world` are captured as well.
-- `my name is [1-3=name]` - stores the user name (consisting of 1 to 3 tokens) in the `name` slot.
-
-Any rule construct can contain the `[]` modifier to control the number
-of occurrences, and to store it in a variable:
-
-Repeating a construct multiple times:
-
-`hello[1+]` matches `hello` but also `hello hello hello`
-
-### Combining Rules
-
-Almost any of the above pattern matching rules can be combined.
-
-- `rule1 [1+] !rule2 rule3` — at least 1 word occurs between rule1 and rule3, and that 1 word cannot be rule2
-- `( rule1 [0] rule2 rule3 )` — no words can occur between rule1 and rule2
-- `< rule1 ( rule2 | rule3 ) >` — rule1 must be matched, at least 1 of rule2 and/or rule3 must occur
-- `rule1 rule2? "rule3"` — rule1 must be matched, rule2 may or may not be matched, and rule3 must be matched verbatim
-
-
-## Definition
-
-### Base version requirements
-
-- word normalization (lemmatization)
-- ( a | b ) to indicate 'or'; grouping
-- "literal" (still case insensitive)
-- '+' to indicate adjacent rules: my + name + is; no words inbetween
-- ? appended = optional rule; same as [0-1] appended
-- [control instructions]
-  - [=store_as_name] store last captured rule
-  - [Start] start of sentence (standalone)
-  - [End] end of sentence (standalone)
-  - [0-10] standalone match N words
-  - [0-10] appended; match 1-10 rules
-  - [1+] appended; match 1 or more
-- /.../ regex token
-- < a, b > indicates order-independent sequence
-
-
-### Extended version
-
-- polarity filter (language specific!)
-- @ to indicate rule composition
-  my email is /[a-z]@[a-z].com/[=email]
-- duckling
-  [Email] [AmountOfMoney] [CreditCardNumber] [Distance] [Numeral] etc.
-
-
-
-
-## Inspiration
-
-### pullstring
-
-- polarity filter (do not match negative stmts)
-- put * (any word) operator by default between all words
-- alternatives ( alternative | other )
-- all required but order independent: < a, b, c >
-- wordnet-based synonyms (~like)
-- negation (!word)
-- optional rules (?rule)
-- literal sequences "San Francisco" (verbatim)
-- control nr of words between rules [0] [1] [1-10]
-- match start / end of sentence ([Start] [End])
-
-- add flags / modifiers to rules (to store information etc)
-
-### spacy
-
-- word normalization (lemmatization)
-- named entities (overlap w/ duckling?)
-
-### chatscript
-
-- statement / question detection
-- composable user-defined concepts: ~food ( ~meat ~dessert lasagna ~vegetables ~fruit )
-- can use wordnet ontologies
-- "canonical forms" of words
-
-### duckling
-
-Use entity detection like
-- email, date, number, etc.
 
 
 
