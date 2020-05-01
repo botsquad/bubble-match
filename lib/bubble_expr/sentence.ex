@@ -82,7 +82,8 @@ defmodule BubbleExpr.Sentence do
       (a ++ replace_tokens ++ b)
       |> reindex()
     else
-      raise RuntimeError, "Token not found at start = #{start}, end = #{end_}"
+      # raise RuntimeError, "Token not found at start = #{start}, end = #{end_}"
+      token_sequence
     end
   end
 
