@@ -69,15 +69,15 @@ defmodule BubbleExpr.Parser do
   defp eat(args, override \\ nil)
 
   defp eat([n], override) do
-    {:eat, {n, override || n}}
+    {:eat, {n, override || n, :greedy}}
   end
 
   defp eat([a, "+"], _override) do
-    {:eat, {a, :infinity}}
+    {:eat, {a, :infinity, :greedy}}
   end
 
   defp eat([a, b], _override) do
-    {:eat, {a, b}}
+    {:eat, {a, b, :greedy}}
   end
 
   # slot assignment
@@ -122,8 +122,16 @@ defmodule BubbleExpr.Parser do
     {:entity, type, []}
   end
 
-  defp finalize_rule([{:any, []}, value]) do
-    {:any, value, []}
+  defp finalize_rule([{:any, {:eat, range}}, opts]) do
+    {:any, [], Keyword.put(opts, :range, range)}
+  end
+
+  defp finalize_rule([{:any, []}, :start]) do
+    {:sentence_start, [], []}
+  end
+
+  defp finalize_rule([{:any, []}, :end]) do
+    {:sentence_end, [], []}
   end
 
   defp finalize_rule([{type, value}]) do
@@ -208,9 +216,11 @@ defmodule BubbleExpr.Parser do
     Enum.reduce(rules, {prev, []}, fn rule, {last_rule_type, new_rules} ->
       {type, data, ctl} = rule
 
-      if type != :any and last_rule_type != :any do
+      if type != :any and last_rule_type != :any and type != :sentence_start and
+           last_rule_type != :sentence_start and type != :sentence_end and
+           last_rule_type != :sentence_end do
         data = ensure_eat_before_rules_inner(data)
-        {type, [{type, data, ctl}, {:any, {:eat, {0, :infinity}}, []} | new_rules]}
+        {type, [{type, data, ctl}, {:any, [], [repeat: {0, :infinity, :nongreedy}]} | new_rules]}
       else
         {type, [rule | new_rules]}
       end

@@ -28,7 +28,11 @@ defmodule BubbleExpr.Matcher do
     {:match, ts_remaining, ts_match, context}
   end
 
-  defp match_rules([{:any, t, []} | _], [], ts_match, context) when t in ~w(start end)a do
+  defp match_rules([{:sentence_start, [], _} | _], [], ts_match, context) do
+    {:match, [], ts_match, context}
+  end
+
+  defp match_rules([{:sentence_end, [], _} | _], [], ts_match, context) do
     {:match, [], ts_match, context}
   end
 
@@ -37,7 +41,7 @@ defmodule BubbleExpr.Matcher do
   end
 
   defp match_rules([{_, _, ctl} = rule | rest], ts_remaining, ts_match, context) do
-    repeat = ctl[:repeat] || {1, 1}
+    repeat = ctl[:repeat] || {1, 1, :greedy}
 
     with {:match, ts_remaining, inner, context} <-
            match_rule_repeat(repeat, rule, rest, ts_remaining, [], context) do
@@ -46,19 +50,24 @@ defmodule BubbleExpr.Matcher do
     end
   end
 
-  defp match_rule_repeat({1, 1}, rule, rls_remaining, ts_remaining, ts_match, context) do
+  defp match_rule_repeat({0, 0, _}, _, _, ts_remaining, ts_match, context) do
+    {:match, ts_remaining, ts_match, context}
+  end
+
+  defp match_rule_repeat({1, 1, _}, rule, rls_remaining, ts_remaining, ts_match, context) do
     with {:match, ts_remaining, inner, context} <-
-           match_rule(rule, rls_remaining, ts_remaining, context) do
+           match_rule(rule, rls_remaining, ts_remaining, context),
+         {:match, _, _, _} <- match_rules(rls_remaining, ts_remaining, [], context) do
       {:match, ts_remaining, inner ++ ts_match, context}
     end
   end
 
-  defp match_rule_repeat({n, n}, rule, rls_remaining, ts_remaining, ts_match, context)
+  defp match_rule_repeat({n, n, g}, rule, rls_remaining, ts_remaining, ts_match, context)
        when n > 1 do
     with {:match, ts_remaining, inner, context} <-
            match_rule(rule, rls_remaining, ts_remaining, context) do
       match_rule_repeat(
-        {n - 1, n - 1},
+        {n - 1, n - 1, g},
         rule,
         rls_remaining,
         ts_remaining,
@@ -68,14 +77,34 @@ defmodule BubbleExpr.Matcher do
     end
   end
 
-  defp match_rule_repeat({n, m}, rule, rls_remaining, ts_remaining, ts_match, context)
+  defp match_rule_repeat({n, m, :greedy}, rule, rls_remaining, ts_remaining, ts_match, context)
        when m > n do
     m = prevent_infinity(m, n, ts_remaining)
 
     with :nomatch <-
-           match_rule_repeat({m, m}, rule, rls_remaining, ts_remaining, ts_match, context) do
-      match_rule_repeat({n, m - 1}, rule, rls_remaining, ts_remaining, ts_match, context)
+           match_rule_repeat(
+             {m, m, :greedy},
+             rule,
+             rls_remaining,
+             ts_remaining,
+             ts_match,
+             context
+           ) do
+      match_rule_repeat({n, m - 1, :greedy}, rule, rls_remaining, ts_remaining, ts_match, context)
     end
+  end
+
+  defp match_rule_repeat({n, m, :nongreedy}, rule, rls_remaining, ts_remaining, ts_match, context)
+       when m > n do
+    with {eaten, ts_remaining} <-
+           match_nongreedy({n, m}, rule, rls_remaining, ts_remaining, ts_match) do
+      {:match, ts_remaining, eaten ++ ts_match, context}
+    end
+  end
+
+  defp match_rule({:any, [], _}, _rls_remaining, ts_remaining, context) do
+    fn _t -> true end
+    |> boolean_match(ts_remaining, context)
   end
 
   defp match_rule({:word, word, _}, _rls_remaining, ts_remaining, context) do
@@ -97,12 +126,6 @@ defmodule BubbleExpr.Matcher do
     with {:match, ts_remaining, inner, context} <-
            match_any_list_of_rules(seqs, ts_remaining, [], context) do
       {:match, ts_remaining, inner, context}
-    end
-  end
-
-  defp match_rule({:any, {:eat, range}, _}, rls_remaining, ts_remaining, context) do
-    with {eaten, ts_remaining} <- match_eat_tokens(range, rls_remaining, ts_remaining, []) do
-      {:match, ts_remaining, eaten, context}
     end
   end
 
@@ -139,7 +162,7 @@ defmodule BubbleExpr.Matcher do
     end
   end
 
-  defp match_rule({:any, :start, _}, _rls_remaining, ts_remaining, context) do
+  defp match_rule({:sentence_start, [], _}, _rls_remaining, ts_remaining, context) do
     case ts_remaining do
       [%{index: 0} | _] ->
         {:match, ts_remaining, [], context}
@@ -149,33 +172,30 @@ defmodule BubbleExpr.Matcher do
     end
   end
 
-  defp match_rule({:any, :end, _}, _rls_remaining, _ts_remaining, _context) do
+  defp match_rule({:sentence_end, [], _}, _rls_remaining, _ts_remaining, _context) do
     :nomatch
   end
 
   ###
 
-  defp match_eat_tokens(nil, _rules, ts_remaining, add) do
-    {add, ts_remaining}
-  end
-
-  defp match_eat_tokens({n, _m}, _rules, ts_remaining, _add) when n > length(ts_remaining) do
+  defp match_nongreedy({n, _m}, _rule, _rules, ts_remaining, _add)
+       when n > length(ts_remaining) do
     :nomatch
   end
 
-  defp match_eat_tokens({n, n}, _rules, ts_remaining, add) do
+  defp match_nongreedy({n, n}, _rule, _rules, ts_remaining, add) do
     {left, right} = Enum.split(ts_remaining, n)
     {Enum.reverse(left) ++ add, right}
   end
 
-  defp match_eat_tokens({n, m}, rules, ts_remaining, add) when n > 0 do
+  defp match_nongreedy({n, m}, rule, rules, ts_remaining, add) when n > 0 do
     {left, right} = Enum.split(ts_remaining, n)
     {Enum.reverse(left), right}
     m = prevent_infinity(m, n, ts_remaining)
-    match_eat_tokens({0, m - n}, rules, right, add ++ Enum.reverse(left))
+    match_nongreedy({0, m - n}, rule, rules, right, add ++ Enum.reverse(left))
   end
 
-  defp match_eat_tokens({0, n}, rules, ts_remaining, add) do
+  defp match_nongreedy({0, n}, _rule, rules, ts_remaining, add) do
     n = prevent_infinity(n, 0, ts_remaining)
 
     # here we need to try the rules for the 0..n splits of ts_remaining.

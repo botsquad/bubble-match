@@ -82,7 +82,6 @@ defmodule BubbleExpr.MatcherTest do
 
   test "[N]" do
     #    assert {:match, %{}} = Matcher.match("[1]", "hello")
-    assert {:match, %{}} = Matcher.match("[0+] world", "hello world")
     assert {:match, %{}} = Matcher.match("[2]", "hello world")
     assert {:match, %{}} = Matcher.match("[2]", "hello world there")
     assert :nomatch = Matcher.match("[2]", "hello")
@@ -124,6 +123,10 @@ defmodule BubbleExpr.MatcherTest do
     # assert 1 == length(all)
 
     assert :nomatch = Matcher.match("hello [10+]", "Hello a b c d!")
+  end
+
+  test "[N+]" do
+    assert {:match, %{}} = Matcher.match("[1+] world", "hello world")
   end
 
   test "entities" do

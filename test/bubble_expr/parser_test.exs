@@ -19,7 +19,8 @@ defmodule BubbleExpr.ParserTest do
   ]
 
   @invalid [
-    "("
+    "(",
+    "() )"
   ]
 
   test "parser" do
@@ -47,5 +48,9 @@ defmodule BubbleExpr.ParserTest do
 
   test "do not error in invalid regex" do
     assert {:error, _} = Parser.parse("/f[/")
+  end
+
+  test "range" do
+    assert {:ok, %{ast: [{:any, [], [repeat: {2, 4, :greedy}]}]}} = Parser.parse("[2-4]")
   end
 end
