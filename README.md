@@ -2,6 +2,8 @@
 
 NLP rule language for matching natural language against a rule base.
 
+**Warning: this project is currently heavily in development. Its syntax and API might change at any time**
+
 [Check out the demo environment](http://expr-ninja.apps.botsqd.com/) powered by Phoenix Liveview.
 
 
