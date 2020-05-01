@@ -2,6 +2,9 @@
 
 NLP rule language for matching natural language against a rule base.
 
+[Check out the demo environment](http://expr-ninja.apps.botsqd.com/) powered by Phoenix Liveview.
+
+
 ## Examples
 
 Match basic words, including optional words in between:
