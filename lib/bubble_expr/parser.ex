@@ -1,18 +1,16 @@
 defmodule BubbleExpr.Parser do
   import NimbleParsec
 
-  # ws       := [ ]+
-  # word     := (A-Za-z)+
-  # or_group := '(' ws? rule_seq (ws '|' ws rule_seq)* ws? ')'
-  # perm_group := '<' ws? rule_seq ws? '>'
-
-  # rule     := word | or_group
-  # rule_seq := rule | rule ws rule_seq
-
   @ws [9, 10, 11, 12, 13, 32]
   ws = ignore(ascii_char(@ws) |> concat(repeat(ascii_char(@ws))))
 
-  @string ascii_string(Enum.to_list(?A..?Z) ++ Enum.to_list(?a..?z), min: 1)
+  string = ascii_string(Enum.to_list(?A..?Z) ++ Enum.to_list(?a..?z), min: 1)
+
+  defp to_int(a) do
+    :string.to_integer(a) |> elem(0)
+  end
+
+  int = times(ascii_char([?0..?9]), min: 1) |> reduce(:to_int)
 
   literal =
     ignore(string("\""))
@@ -22,8 +20,8 @@ defmodule BubbleExpr.Parser do
     |> unwrap_and_tag(:literal)
 
   word =
-    @string
-    |> unwrap_and_tag(:word)
+    string
+    |> reduce(:finalize_word)
 
   or_group =
     ignore(string("("))
@@ -83,14 +81,8 @@ defmodule BubbleExpr.Parser do
   # slot assignment
   assign =
     ignore(string("="))
-    |> concat(@string)
+    |> concat(string)
     |> unwrap_and_tag(:assign)
-
-  defp to_int(a) do
-    :string.to_integer(a) |> elem(0)
-  end
-
-  int = times(ascii_char([?0..?9]), min: 1) |> reduce(:to_int)
 
   control_block =
     ignore(string("["))
@@ -107,11 +99,15 @@ defmodule BubbleExpr.Parser do
       symbol.("Start", :start),
       # end of sentence
       symbol.("End", :end),
-      @string |> tag(:entity),
+      string |> tag(:entity),
       empty()
     ])
     |> optional(assign)
     |> ignore(string("]"))
+
+  defp finalize_word([str]) do
+    {:word, String.downcase(str)}
+  end
 
   defp finalize_rule([a, b, {:assign, v}]) do
     {a, b, c} = finalize_rule([a, b])
