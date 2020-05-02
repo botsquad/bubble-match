@@ -13,6 +13,8 @@ defmodule BubbleExpr.MatcherTest do
 
   test "literal" do
     assert {:match, %{}} == Matcher.match("\"world\"", "Hello, world")
+    assert {:match, %{}} == Matcher.match("\"Hello\"", "Hello world")
+
     assert :nomatch == Matcher.match("\"World\"", "Hello, world")
     assert {:match, %{}} == Matcher.match("\"Hello, world\"", "Hello, world")
 

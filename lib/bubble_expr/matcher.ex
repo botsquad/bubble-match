@@ -145,13 +145,15 @@ defmodule BubbleExpr.Matcher do
       {[], ts_remaining, str},
       fn
         t, {matched, remaining, str} ->
-          if String.starts_with?(str, t.raw) do
-            case String.trim_leading(str, t.raw) do
+          raw = String.trim_trailing(t.raw)
+
+          if String.starts_with?(str, raw) do
+            case String.trim_leading(str, raw) do
               "" ->
                 {:halt, {:match, tl(remaining), [t | matched], context}}
 
               str ->
-                {:cont, {[t | matched], tl(remaining), str}}
+                {:cont, {[t | matched], tl(remaining), String.trim_leading(str)}}
             end
           else
             {:halt, :nomatch}
