@@ -139,36 +139,28 @@ defmodule BubbleExpr.Matcher do
     end
   end
 
-  defp match_rule({:literal, str, _}, _rls_remaining, [t | _] = ts_remaining, context) do
-    offset = t.start
-
+  defp match_rule({:literal, str, _}, _rls_remaining, ts_remaining, context) do
     ts_remaining
     |> Enum.reduce_while(
-      {[], ts_remaining},
-      fn t, {matched, remaining} = acc ->
-        {_, chunk} = String.split_at(str, t.start - offset)
+      {[], ts_remaining, str},
+      fn
+        t, {matched, remaining, str} ->
+          if String.starts_with?(str, t.raw) do
+            case String.trim_leading(str, t.raw) do
+              "" ->
+                {:halt, {:match, tl(remaining), [t | matched], context}}
 
-        cond do
-          t.start - offset > String.length(str) ->
-            {:halt, acc}
-
-          String.starts_with?(chunk, t.raw) ->
-            {:cont, {[t | matched], tl(remaining)}}
-
-          String.length(chunk) < String.length(t.raw) and String.starts_with?(t.raw, chunk) ->
-            {:cont, {[t | matched], tl(remaining)}}
-
-          true ->
-            {:halt, acc}
-        end
+              str ->
+                {:cont, {[t | matched], tl(remaining), str}}
+            end
+          else
+            {:halt, :nomatch}
+          end
       end
     )
     |> case do
-      {[], _} ->
-        :nomatch
-
-      {matched, remaining} ->
-        {:match, remaining, matched, context}
+      {_, _, _} -> :nomatch
+      r -> r
     end
   end
 

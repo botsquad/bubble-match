@@ -12,13 +12,19 @@ defmodule BubbleExpr.MatcherTest do
   end
 
   test "literal" do
-    assert {:match, %{}} == Matcher.match("\"world!\"", "Hello, world!")
+    assert {:match, %{}} == Matcher.match("\"world\"", "Hello, world")
+    assert :nomatch == Matcher.match("\"World\"", "Hello, world")
+    assert {:match, %{}} == Matcher.match("\"Hello, world\"", "Hello, world")
+
     assert {:match, %{}} == Matcher.match("\"San Francisco\"", "I live in San Francisco, dude.")
+    assert :nomatch == Matcher.match("\"San Franci\"", "I live in San Francisco, dude.")
 
     assert :nomatch == Matcher.match("\"San Francisco\" yo", "I live in San Francisco, dude.")
 
     assert {:match, %{}} ==
              Matcher.match("\"San Francisco\" dude", "I live in San Francisco, if you know dude.")
+
+    #     assert {:match, _} = Matcher.match("\"Yo\"[2]", "Yo Yo Yo")
   end
 
   test "regex" do
