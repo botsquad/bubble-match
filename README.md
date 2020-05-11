@@ -13,8 +13,8 @@ Matching basic sequences of words
 
 | Match string  | Example           | Matches? |
 |---------------|-------------------|----------|
-| `hello world` | Hello, world!     | **YES**  |
-| `hello world` | Well hello world  | **YES**  |
+| `hello world` | Hello, world!     | **yes**  |
+| `hello world` | Well hello world  | **yes**  |
 | `hello world` | hello there world | no       |
 | `hello world` | world hello       | no       |
 
@@ -23,7 +23,7 @@ Matching regular expressions
 
 | Match string | Example | Matches? |
 |--------------|---------|----------|
-| `/[a-z]+/`   | abcd    | **YES**  |
+| `/[a-z]+/`   | abcd    | **yes**  |
 
 
 Match entities, with the help of Spacy and Duckling preprocessing and
@@ -36,7 +36,8 @@ tokenizing the input:
 
 ## Rules overview
 
-The match syntax is made up by rules. Each individual has the following syntax:
+The match syntax is composed of adjacent and optionally nested,
+rules. Each individual has the following syntax:
 
 - Basic words; only alphanumeric characters and the quote characters
   - matching is done on both the lowercased, normalized version of the
@@ -74,9 +75,15 @@ The match syntax is made up by rules. Each individual has the following syntax:
   - `@food` matches any token in the `food` collection.
   - `@food.subcat` matches any token in the given subcategory.
 
-Concept compilation is done as part of the parse phase; the concepts
-compiler must must return an `{m, f, a}` triple. In runtime, this MFA
-is called while matching, and thus, it must be a fast function.
+  Concept compilation is done as part of the parse phase; the concepts
+  compiler must must return an `{m, f, a}` triple. In runtime, this
+  MFA is called while matching, and thus, it must be a fast function.
+
+
+- Part-of-speech tags (word kinds), e.g.
+  - `%VERB` matches any verb
+  - `%NOUN` matches any noun
+  - Any other POS Spacy tags are valid as well
 
 
 ### Rule modifiers
