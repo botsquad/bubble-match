@@ -9,19 +9,21 @@ NLP rule language for matching natural language against a rule base.
 
 ## Examples
 
-Match basic words, including optional words in between:
+Matching basic sequences of words
 
-| Match string  | Matches            | Does not match |
-|---------------|--------------------|----------------|
-| `hello world` | Hello, world!      | World hello    |
-|               | Hello there, world |                |
-|               | Well hello world   |                |
+| Match string  | Example           | Matches? |
+|---------------|-------------------|----------|
+| `hello world` | Hello, world!     | **YES**  |
+| `hello world` | Well hello world  | **YES**  |
+| `hello world` | hello there world | no       |
+| `hello world` | world hello       | no       |
 
-Match regular expressions
 
-| Match string | Matches | Does not match |
-|--------------|---------|----------------|
-| `/[a-z]+/`   | abcd    | LALA           |
+Matching regular expressions
+
+| Match string | Example | Matches? |
+|--------------|---------|----------|
+| `/[a-z]+/`   | abcd    | **YES**  |
 
 
 Match entities, with the help of Spacy and Duckling preprocessing and
@@ -43,12 +45,14 @@ The match syntax is made up by rules. Each individual has the following syntax:
 - `"Literal word sequence"`
   - Matches a literal piece of text, possibly spread out over multiple tokens.
 
-- `_` without any range specifier, matches 1-5 of any available token, greedy.
+- `_` without any range specifier, matches 0-5 of any available token, greedy.
 
 - Stand-alone range specifier
   - `[1]` match exactly one token; any token
   - `[2+]` match 2 or more tokens (greedy)
   - `[1-3]` match 1 to 3 tokens (greedy)
+  - `[2+?]` match 2 or more tokens (non-greedy)
+  - `[1-3?]` match 1 to 3 tokens (non-greedy)
 
 - Entity tokens: `[email]` matches a token of type `:entity` with value.kind == `email`
 
@@ -66,10 +70,13 @@ The match syntax is made up by rules. Each individual has the following syntax:
 - `[Start]` Matches the start of a sentence
 - `[End]` Matches the end of a sentence
 
-   Note that sentences are always matched individually.
-
 - Word collections ("concepts")
-  - `~food` matches any token in the `food` collection. Collection resolution is done at expression parse time.
+  - `@food` matches any token in the `food` collection.
+  - `@food.subcat` matches any token in the given subcategory.
+
+Concept compilation is done as part of the parse phase; the concepts
+compiler must must return an `{m, f, a}` triple. In runtime, this MFA
+is called while matching, and thus, it must be a fast function.
 
 
 ### Rule modifiers
@@ -78,6 +85,20 @@ Any rule can have a `[]` block which contains a repetition modifier
 and/or a capture expression.
 
 Entity blocks are automatically captured as the entity kind.
+
+### Sentences
+
+The expression matching works on a per-sentence basis; the idea is
+that it does not make sense to create expressions that span over
+sentences.
+
+The builtin sentence tokenizer (`BubbleExpr.Sentence.Tokenizer`) does
+**not** have the concept of sentences, and thus treats each input as a
+single sentence, even in the existence of periods in the input.
+
+However, the prefered way of using this library is by running the
+input through an NLP preprocessor like Spacy, which does tokenize an
+input into individual sentences.
 
 
 

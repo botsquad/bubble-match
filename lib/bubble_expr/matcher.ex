@@ -132,6 +132,11 @@ defmodule BubbleExpr.Matcher do
     |> boolean_match(ts_remaining, context)
   end
 
+  defp match_rule({:concept, {m, f, a}, _}, _rls_remaining, ts_remaining, context) do
+    fn t -> apply(m, f, [t | a]) end
+    |> boolean_match(ts_remaining, context)
+  end
+
   defp match_rule({:or, seqs, _}, _rls_remaining, ts_remaining, context) do
     with {:match, ts_remaining, inner, context} <-
            match_any_list_of_rules(seqs, ts_remaining, [], context) do

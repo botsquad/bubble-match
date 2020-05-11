@@ -4,11 +4,14 @@ defmodule BubbleExpr.MatcherTest do
   alias BubbleExpr.{Matcher, Sentence, Token}
 
   test "matcher" do
-    assert {:match, %{}} == Matcher.match("hello", "Hello, world!")
-    assert {:match, %{}} == Matcher.match("world", "Hello, world!")
-    assert {:match, %{}} == Matcher.match("hello world", "Hello, world!")
-    assert {:match, %{}} == Matcher.match("HELLO World", "Hello, world!")
-    assert :nomatch == Matcher.match("world hello", "Hello, world!")
+    assert {:match, %{}} == Matcher.match("hello", "Hello world!")
+    assert {:match, %{}} == Matcher.match("world", "Hello world!")
+    assert {:match, %{}} == Matcher.match("hello world", "Hello world!")
+    assert {:match, %{}} == Matcher.match("HELLO World", "Hello world!")
+    assert :nomatch == Matcher.match("hello world", "Hello, world!")
+    assert :nomatch == Matcher.match("world hello", "Hello world!")
+    assert :nomatch == Matcher.match("hello world", "Hello there world!")
+    assert :nomatch == Matcher.match("hello world", "Hello there cruel world!")
   end
 
   test "literal" do
@@ -23,10 +26,9 @@ defmodule BubbleExpr.MatcherTest do
 
     assert :nomatch == Matcher.match("\"San Francisco\" yo", "I live in San Francisco, dude.")
 
-    assert {:match, %{}} ==
-             Matcher.match("\"San Francisco\" dude", "I live in San Francisco, if you know dude.")
+    assert {:match, %{}} == Matcher.match("\"test sequence\"", "a a a a test sequence,")
 
-    #     assert {:match, _} = Matcher.match("\"Yo\"[2]", "Yo Yo Yo")
+    assert {:match, _} = Matcher.match("\"Yo\"[2]", "Yo Yo Yo")
   end
 
   test "regex" do
@@ -56,21 +58,21 @@ defmodule BubbleExpr.MatcherTest do
   end
 
   test "capturing" do
-    assert {:match, %{"greeting" => tokens}} = Matcher.match("hello[=greeting]", "Hello, world!")
-    assert [%{raw: "Hello"}] = tokens
+    assert {:match, %{"greeting" => tokens}} = Matcher.match("hello[=greeting]", "Hello world!")
+    assert [%{raw: "Hello "}] = tokens
 
     assert {:match, %{"greeting" => tokens}} =
-             Matcher.match("(hello world)[=greeting]", "boohoo Hello, world! Bye")
+             Matcher.match("(hello world)[=greeting]", "boohoo Hello world! Bye")
 
-    assert [%{raw: "Hello"}, %{raw: ", "}, %{raw: "world"}] = tokens
+    assert [%{raw: "Hello "}, %{raw: "world"}] = tokens
 
     assert {:match, %{"greeting" => greeting, "planet" => [planet]}} =
              Matcher.match(
                "(hello (world | earth)[=planet])[=greeting]",
-               "boohoo Hello, world! Bye"
+               "boohoo Hello world! Bye"
              )
 
-    assert [%{raw: "Hello"}, %{raw: ", "}, %{raw: "world"}] = greeting
+    assert [%{raw: "Hello "}, %{raw: "world"}] = greeting
     assert %{raw: "world"} = planet
   end
 
@@ -90,7 +92,7 @@ defmodule BubbleExpr.MatcherTest do
   end
 
   test "[N]" do
-    #    assert {:match, %{}} = Matcher.match("[1]", "hello")
+    assert {:match, %{}} = Matcher.match("[1]", "hello")
     assert {:match, %{}} = Matcher.match("[2]", "hello world")
     assert {:match, %{}} = Matcher.match("[2]", "hello world there")
     assert :nomatch = Matcher.match("[2]", "hello")
@@ -104,6 +106,28 @@ defmodule BubbleExpr.MatcherTest do
 
     assert {:match, %{"xy" => xy}} = Matcher.match("a [2=xy] c", "a X Y c")
     assert [%{raw: "X "}, %{raw: "Y "}] = xy
+  end
+
+  test "underscore" do
+    assert {:match, _} = Matcher.match("hello _ world", "hello world")
+    assert {:match, _} = Matcher.match("hello _ world", "hello good world")
+    assert {:match, _} = Matcher.match("hello _ world", "hello really really really great world")
+
+    assert :nomatch =
+             Matcher.match(
+               "hello _ world",
+               "hello really really really great awesome blabla world"
+             )
+  end
+
+  test "greedy vs. non-greedy" do
+    # greedy is the default
+    assert {:match, %{"a" => [_, _, _]}} = Matcher.match("[0-10=a]", "a a a")
+
+    # nongreediness is specified with ? modifier after range
+    assert {:match, %{"a" => []}} = Matcher.match("[0-10?=a]", "a a a")
+    assert {:match, %{"a" => [_]}} = Matcher.match("[1-10?=a]", "a a a")
+    assert {:match, %{"a" => [_]}} = Matcher.match("[1+?=a]", "a a a")
   end
 
   test "[0-N]" do
@@ -165,5 +189,30 @@ defmodule BubbleExpr.MatcherTest do
     assert :nomatch = Matcher.match("a[4+=a]", "a a a")
 
     assert {:match, %{"x" => [_, _, _]}} = Matcher.match("(a | b | c)[2-3=x]", "c x a b a")
+  end
+
+  test "concepts" do
+    assert {:match, _} = Matcher.match(compile("@flower"), "tulip")
+    assert :nomatch = Matcher.match(compile("@flower"), "poopoo")
+
+    # implicit assign
+    assert {:match, %{"flower" => [_]}} = Matcher.match(compile("like @flower"), "I like Tulips")
+  end
+
+  defp compile(expr) do
+    BubbleExpr.Parser.parse!(expr, concepts_compiler: &compile_concept/1)
+  end
+
+  defp compile_concept(a) do
+    {:ok, {__MODULE__, :test_concept, [a]}}
+  end
+
+  @concepts %{
+    "flower" => ["tulip", "rose", "tulips"],
+    "transport" => ~w(train car bus bike metro airplane)
+  }
+
+  def test_concept(a, {collection}) do
+    Enum.member?(@concepts[collection], a.value)
   end
 end

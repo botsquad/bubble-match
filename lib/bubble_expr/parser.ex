@@ -1,6 +1,10 @@
 defmodule BubbleExpr.Parser do
   import NimbleParsec
 
+  defmodule ParseError do
+    defexception message: "Parse error"
+  end
+
   @ws [9, 10, 11, 12, 13, 32]
   ws = ignore(ascii_char(@ws) |> concat(repeat(ascii_char(@ws))))
 
@@ -70,6 +74,10 @@ defmodule BubbleExpr.Parser do
     {:eat, {n, override || n, :greedy}}
   end
 
+  defp eat([a, "+", "?"], _override) do
+    {:eat, {a, :infinity, :nongreedy}}
+  end
+
   defp eat([a, "+"], _override) do
     {:eat, {a, :infinity, :greedy}}
   end
@@ -77,6 +85,21 @@ defmodule BubbleExpr.Parser do
   defp eat([a, b], _override) do
     {:eat, {a, b, :greedy}}
   end
+
+  defp eat([a, b, "?"], _override) do
+    {:eat, {a, b, :nongreedy}}
+  end
+
+  defp concept(a) do
+    {:concept, to_string(a) |> String.split(".") |> List.to_tuple()}
+  end
+
+  # slot assignment
+  concept =
+    ignore(string("@"))
+    |> concat(string)
+    |> optional(repeat(string(".") |> concat(string)))
+    |> reduce(:concept)
 
   # slot assignment
   assign =
@@ -94,6 +117,7 @@ defmodule BubbleExpr.Parser do
           ignore(string("-")) |> concat(int)
         ])
       )
+      |> optional(string("?"))
       |> reduce(:eat),
       # start of sentence
       symbol.("Start", :start),
@@ -118,16 +142,16 @@ defmodule BubbleExpr.Parser do
     {:entity, type, []}
   end
 
-  defp finalize_rule([{:any, {:eat, range}}, opts]) do
-    {:any, [], Keyword.put(opts, :range, range)}
-  end
-
   defp finalize_rule([{:any, []}, :start]) do
     {:sentence_start, [], []}
   end
 
   defp finalize_rule([{:any, []}, :end]) do
     {:sentence_end, [], []}
+  end
+
+  defp finalize_rule([{:underscore, _}]) do
+    {:any, [], [repeat: {0, 5, :greedy}]}
   end
 
   defp finalize_rule([{type, value}]) do
@@ -154,6 +178,8 @@ defmodule BubbleExpr.Parser do
       literal,
       or_group,
       perm_group,
+      concept,
+      string("_") |> tag(:underscore),
       lookahead(string("[")) |> tag(:any)
     ])
     |> optional(choice([control_block, ignore(string("?")) |> tag(:optional)]))
@@ -171,7 +197,13 @@ defmodule BubbleExpr.Parser do
     |> reduce(:finalize_seq)
   )
 
-  # defparsec(:parse, parsec(:rule_seq))
+  def parse!(input, opts \\ []) do
+    case parse(input, opts) do
+      {:ok, expr} -> expr
+      {:error, message} -> raise ParseError, message
+    end
+  end
+
   def parse(input, opts \\ []) do
     case String.trim(input) do
       "" ->
@@ -190,7 +222,8 @@ defmodule BubbleExpr.Parser do
                     parsed
                     |> expand_permutations()
                     |> add_implicit_assign()
-                    |> ensure_eat_before_rules(nil)
+                    |> ensure_eat_before_rules()
+                    |> compile_concepts(opts[:concepts_compiler])
                 end
 
               {:ok, %BubbleExpr{ast: parsed}}
@@ -204,47 +237,66 @@ defmodule BubbleExpr.Parser do
         rescue
           e in Regex.CompileError ->
             {:error, "Regex: " <> Exception.message(e)}
+
+          e in ParseError ->
+            {:error, Exception.message(e)}
         end
     end
   end
 
-  defp ensure_eat_before_rules(rules, prev) do
-    Enum.reduce(rules, {prev, []}, fn rule, {last_rule_type, new_rules} ->
-      {type, data, ctl} = rule
-
-      if type != :any and last_rule_type != :any and type != :sentence_start and
-           last_rule_type != :sentence_start and type != :sentence_end and
-           last_rule_type != :sentence_end do
-        data = ensure_eat_before_rules_inner(data)
-        {type, [{type, data, ctl}, {:any, [], [repeat: {0, :infinity, :nongreedy}]} | new_rules]}
-      else
-        {type, [rule | new_rules]}
-      end
-    end)
-    |> elem(1)
-    |> Enum.reverse()
+  defp ensure_eat_before_rules([{:sentence_start, _, _} | _] = rules) do
+    rules
   end
 
-  defp ensure_eat_before_rules_inner(list_of_rules) when is_list(list_of_rules) do
-    list_of_rules |> Enum.map(&ensure_eat_before_rules(&1, :any))
+  defp ensure_eat_before_rules(rules) do
+    [{:any, [], [repeat: {0, :infinity, :nongreedy}]} | rules]
   end
 
-  defp ensure_eat_before_rules_inner(data), do: data
-
-  defp expand_permutations(rules) do
+  defp walk_rules(rules, processor) do
     Enum.map(
       rules,
-      fn
-        {:perm, rules, meta} ->
-          {:or, permutations(expand_permutations(rules)), meta}
+      fn node ->
+        {verb, rules, meta} = processor.(node)
 
-        {verb, rules, meta} when is_list(rules) ->
-          {verb, expand_permutations(rules), meta}
-
-        x ->
-          x
+        if is_list(rules) do
+          rules = Enum.map(rules, &walk_rules(&1, processor))
+          {verb, rules, meta}
+        else
+          {verb, rules, meta}
+        end
       end
     )
+  end
+
+  defp compile_concepts(rules, nil), do: rules
+
+  defp compile_concepts(rules, compiler) do
+    walk_rules(rules, fn
+      {:concept, ast, meta} ->
+        case compiler.(ast) do
+          {:ok, result} ->
+            {:concept, result, meta}
+
+          {:error, message} ->
+            raise ParseError, message
+
+          other ->
+            raise ParseError, "concepts_compiler returned invalid data: " <> inspect(other)
+        end
+
+      x ->
+        x
+    end)
+  end
+
+  defp expand_permutations(rules) do
+    walk_rules(rules, fn
+      {:perm, rules, meta} ->
+        {:or, permutations(rules), meta}
+
+      x ->
+        x
+    end)
   end
 
   defp permutations([]), do: [[]]
@@ -256,14 +308,11 @@ defmodule BubbleExpr.Parser do
     Enum.map(
       rules,
       fn
-        {:entity, kind, meta} = triple ->
-          case meta[:assign] do
-            nil ->
-              {:entity, kind, [{:assign, String.downcase(kind)} | meta]}
+        {:entity, kind, meta} ->
+          {:entity, kind, Keyword.put(meta, :assign, meta[:assign] || String.downcase(kind))}
 
-            _ ->
-              triple
-          end
+        {:concept, {kind}, meta} ->
+          {:concept, {kind}, Keyword.put(meta, :assign, meta[:assign] || String.downcase(kind))}
 
         {verb, rules, meta} when is_list(rules) ->
           {verb, Enum.map(rules, &add_implicit_assign/1), meta}
