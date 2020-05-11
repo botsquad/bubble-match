@@ -136,6 +136,11 @@ defmodule BubbleExpr.Matcher do
     |> boolean_match(ts_remaining, context)
   end
 
+  defp match_rule({:pos, tag, _}, _rls_remaining, ts_remaining, context) do
+    fn t -> Token.pos?(t, tag) end
+    |> boolean_match(ts_remaining, context)
+  end
+
   defp match_rule({:concept, {m, f, a}, _}, _rls_remaining, ts_remaining, context) do
     fn t -> apply(m, f, [t | a]) end
     |> boolean_match(ts_remaining, context)

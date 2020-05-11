@@ -22,6 +22,8 @@ defmodule BubbleExpr.SentenceTest do
   test "match from spacy" do
     all = [hithere, mynameis] = Sentence.sentences_from_spacy(@spacy_json)
 
+    assert {:match, _} = BubbleExpr.Matcher.match("%NOUN", mynameis)
+
     assert {:match, _} = BubbleExpr.Matcher.match("my name is", mynameis)
     assert :nomatch = BubbleExpr.Matcher.match("my name is", hithere)
 

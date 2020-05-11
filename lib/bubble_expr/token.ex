@@ -18,6 +18,18 @@ defmodule BubbleExpr.Token do
     }
   end
 
+  def pos?(%M{type: :spacy, value: %{pos: tag}}, tag) do
+    true
+  end
+
+  def pos?(%M{type: :spacy, value: %{tag: tag}}, tag) do
+    true
+  end
+
+  def pos?(_, _) do
+    false
+  end
+
   def word?(%M{type: :spacy} = t, word) do
     t.value.norm == word || t.value.lemma == word
   end

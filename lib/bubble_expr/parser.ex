@@ -10,6 +10,8 @@ defmodule BubbleExpr.Parser do
 
   string = ascii_string(Enum.to_list(?A..?Z) ++ Enum.to_list(?a..?z), min: 1)
 
+  identifier = ascii_string(Enum.to_list(?A..?Z) ++ Enum.to_list(?a..?z), min: 1)
+
   defp to_int(a) do
     :string.to_integer(a) |> elem(0)
   end
@@ -170,11 +172,17 @@ defmodule BubbleExpr.Parser do
     {type, value, [repeat: range]}
   end
 
+  pos =
+    ignore(string("%"))
+    |> concat(identifier)
+    |> unwrap_and_tag(:pos)
+
   defcombinatorp(
     :rule,
     choice([
       word,
       regex,
+      pos,
       literal,
       or_group,
       perm_group,

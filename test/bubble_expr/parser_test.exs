@@ -15,6 +15,7 @@ defmodule BubbleExpr.ParserTest do
     "[Start] [1-2] hello",
     "world[1-2]",
     "this is a /regex/",
+    "%VERB",
     "< a < b c > > d",
     "@foo[=a]",
     "@foo.bar @bla hello (@foo | @bar)"
