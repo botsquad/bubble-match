@@ -268,20 +268,24 @@ defmodule BubbleExpr.Parser do
     )
   end
 
-  defp compile_concepts(rules, nil), do: rules
-
   defp compile_concepts(rules, compiler) do
     walk_rules(rules, fn
       {:concept, ast, meta} ->
-        case compiler.(ast) do
-          {:ok, result} ->
-            {:concept, result, meta}
+        case compiler do
+          nil ->
+            raise ParseError, "Missing concepts_compiler option"
 
-          {:error, message} ->
-            raise ParseError, message
+          _ ->
+            case compiler.(ast) do
+              {:ok, result} ->
+                {:concept, result, meta}
 
-          other ->
-            raise ParseError, "concepts_compiler returned invalid data: " <> inspect(other)
+              {:error, message} ->
+                raise ParseError, message
+
+              other ->
+                raise ParseError, "concepts_compiler returned invalid data: " <> inspect(other)
+            end
         end
 
       x ->

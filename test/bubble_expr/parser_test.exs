@@ -81,6 +81,8 @@ defmodule BubbleExpr.ParserTest do
   end
 
   test "@concept compiler error case" do
+    assert {:error, _} = Parser.parse("@foo")
+
     compiler = fn _ ->
       nil
     end
