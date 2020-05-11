@@ -3,6 +3,10 @@ defmodule BubbleExpr.MatcherTest do
 
   alias BubbleExpr.{Matcher, Sentence, Token}
 
+  test "edge cases" do
+    assert :nomatch == Matcher.match("", "Hello world!")
+  end
+
   test "matcher" do
     assert {:match, %{}} == Matcher.match("hello", "Hello world!")
     assert {:match, %{}} == Matcher.match("world", "Hello world!")

@@ -34,6 +34,10 @@ defmodule BubbleExpr.Matcher do
     end)
   end
 
+  defp match_rules(nil, _ts_remaining, _ts_match, _context) do
+    :nomatch
+  end
+
   defp match_rules([], ts_remaining, ts_match, context) do
     {:match, ts_remaining, ts_match, context}
   end

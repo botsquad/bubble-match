@@ -27,6 +27,8 @@ defmodule BubbleExpr.ParserTest do
   ]
 
   test "parser" do
+    assert {:ok, %{ast: nil}} = parse("")
+
     for sentence <- @valid do
       assert {:ok, _ast} = parse(sentence)
     end
