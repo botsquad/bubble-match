@@ -24,6 +24,7 @@ defmodule BubbleExpr.ParserTest do
   @invalid [
     "(",
     "() )",
+    "word[ent]",
     "@fofdsfs+fdsfds"
   ]
 

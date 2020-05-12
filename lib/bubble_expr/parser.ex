@@ -144,6 +144,10 @@ defmodule BubbleExpr.Parser do
     {:entity, type, []}
   end
 
+  defp finalize_rule([_, {:entity, _}]) do
+    raise ParseError, "Invalid entity declaration"
+  end
+
   defp finalize_rule([{:any, []}, :start]) do
     {:sentence_start, [], []}
   end
