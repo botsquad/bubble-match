@@ -6,17 +6,17 @@ defmodule BubbleExpr.Parser do
   end
 
   @ws [9, 10, 11, 12, 13, 32]
-  ws = ignore(ascii_char(@ws) |> concat(repeat(ascii_char(@ws))))
+  ws = ignore(utf8_char(@ws) |> concat(repeat(utf8_char(@ws))))
 
-  string = ascii_string(Enum.to_list(?A..?Z) ++ Enum.to_list(?a..?z), min: 1)
+  string = utf8_string(Enum.to_list(?A..?Z) ++ Enum.to_list(?a..?z), min: 1)
 
-  identifier = ascii_string(Enum.to_list(?A..?Z) ++ Enum.to_list(?a..?z), min: 1)
+  identifier = utf8_string(Enum.to_list(?A..?Z) ++ Enum.to_list(?a..?z), min: 1)
 
   defp to_int(a) do
     :string.to_integer(a) |> elem(0)
   end
 
-  int = times(ascii_char([?0..?9]), min: 1) |> reduce(:to_int)
+  int = times(utf8_char([?0..?9]), min: 1) |> reduce(:to_int)
 
   literal =
     ignore(string("\""))
@@ -59,7 +59,7 @@ defmodule BubbleExpr.Parser do
 
   regex =
     ignore(string("/"))
-    |> ascii_string([{:not, ?/}], min: 0)
+    |> utf8_string([{:not, ?/}], min: 0)
     |> ignore(string("/"))
     |> reduce(:regex_compile)
     |> unwrap_and_tag(:regex)

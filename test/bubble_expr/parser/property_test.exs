@@ -29,6 +29,6 @@ defmodule BubbleExpr.Parser.PropertyTest do
     ii = Enum.at(list, :rand.uniform(Enum.count(list)))
     list = List.delete(list, ii)
     jj = Enum.at(list, :rand.uniform(Enum.count(list)))
-    list = List.delete(list, jj)
+    List.delete(list, jj)
   end
 end

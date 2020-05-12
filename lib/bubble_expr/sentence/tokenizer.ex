@@ -3,7 +3,7 @@ defmodule BubbleExpr.Sentence.Tokenizer do
   alias BubbleExpr.Token
 
   @ws [9, 10, 11, 12, 13, 32]
-  ws = ascii_string(@ws, min: 1)
+  ws = utf8_string(@ws, min: 1)
 
   @punct [
     ??,
@@ -32,11 +32,11 @@ defmodule BubbleExpr.Sentence.Tokenizer do
   ]
 
   punct =
-    ascii_char(@punct)
+    utf8_char(@punct)
     |> tag(:punct)
 
   text =
-    ascii_string(Enum.map(@ws, &{:not, &1}) ++ Enum.map(@punct, &{:not, &1}), min: 1)
+    utf8_string(Enum.map(@ws, &{:not, &1}) ++ Enum.map(@punct, &{:not, &1}), min: 1)
     |> tag(:word)
 
   defparsec(
