@@ -22,7 +22,8 @@ defmodule BubbleExpr.MixProject do
   defp deps do
     [
       {:nimble_parsec, "~> 0.5"},
-      {:jason, "~> 1.0"}
+      {:jason, "~> 1.0"},
+      {:stream_data, "~> 0.1", only: :test}
     ]
   end
 end
