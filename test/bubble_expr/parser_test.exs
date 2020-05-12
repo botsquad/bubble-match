@@ -86,6 +86,18 @@ defmodule BubbleExpr.ParserTest do
     assert_receive({:compiled, _})
   end
 
+  test "@concept compiler can return expr" do
+    compiler = fn {"intent"} ->
+      send(self(), {:compiled, :x})
+      Parser.parse("hello _ world")
+    end
+
+    assert {:ok, %{ast: [_, {:concept, %BubbleExpr{}, [assign: "intent"]}]}} =
+             Parser.parse("@intent", concepts_compiler: compiler)
+
+    assert_receive({:compiled, _})
+  end
+
   test "@concept compiler error case" do
     assert {:error, _} = Parser.parse("@foo")
 
