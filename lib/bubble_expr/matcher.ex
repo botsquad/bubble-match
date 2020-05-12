@@ -42,11 +42,11 @@ defmodule BubbleExpr.Matcher do
     {:match, ts_remaining, ts_match, context}
   end
 
-  defp match_rules([{:sentence_start, [], _} | _], [], ts_match, context) do
-    {:match, [], ts_match, context}
+  defp match_rules([{:sentence_start, [], _}, {:sentence_end, [], _} | _], [], [], context) do
+    {:match, [], [], context}
   end
 
-  defp match_rules([{:sentence_end, [], _} | _], [], ts_match, context) do
+  defp match_rules([{:sentence_end, [], _}], [], ts_match, context) do
     {:match, [], ts_match, context}
   end
 

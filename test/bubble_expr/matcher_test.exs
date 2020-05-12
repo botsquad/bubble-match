@@ -83,15 +83,19 @@ defmodule BubbleExpr.MatcherTest do
   test "[Start]" do
     assert {:match, %{}} = Matcher.match("[Start] hello", "Hello, world!")
     assert :nomatch = Matcher.match("[Start] hello", "Well hello there")
+    assert :nomatch = Matcher.match("hello [Start]", "Well hello")
   end
 
   test "[End]" do
     assert {:match, %{}} = Matcher.match("world [End]", "Hello, world")
     assert :nomatch = Matcher.match("world [End]", "The world is ending")
+    assert :nomatch = Matcher.match("[End] world", "The world is ending")
   end
 
   test "[Start] [End]" do
+    assert {:match, %{}} = Matcher.match("[Start] x [End]", "x")
     assert {:match, %{}} = Matcher.match("[Start] [End]", "")
+    assert :nomatch = Matcher.match("lala [Start] [End]", "lala")
     assert :nomatch = Matcher.match("[Start] [End]", "lala")
   end
 
