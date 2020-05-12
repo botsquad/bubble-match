@@ -9,6 +9,8 @@ defmodule BubbleExpr.ParserTest do
     "abc def (a)",
     "x y (a \"hello World\" San | b (y | x) c)",
     "a [0] b",
+    "(a|b)",
+    "( a|b|c )  ",
     "a [1+] b",
     "a [1-2=lala] b",
     "(hello | hi) world [End]",

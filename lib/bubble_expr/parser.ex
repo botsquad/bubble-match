@@ -35,9 +35,9 @@ defmodule BubbleExpr.Parser do
     |> parsec(:rule_seq)
     |> optional(
       repeat(
-        ws
+        optional(ws)
         |> ignore(string("|"))
-        |> concat(ws)
+        |> optional(ws)
         |> parsec(:rule_seq)
       )
     )
