@@ -1,5 +1,7 @@
 # BubbleExpr
 
+[![Build status](https://travis-ci.com/botsquad/bubble-expr.svg?branch=master)](https://travis-ci.com/github/botsquad/bubble-expr)
+
 NLP rule language for matching natural language against a rule base.
 
 **Warning: this project is currently heavily in development. Its syntax and API might change at any time**
