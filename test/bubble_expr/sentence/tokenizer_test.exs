@@ -13,4 +13,8 @@ defmodule BubbleExpr.Sentence.TokenizerTest do
   test "unicode" do
     assert [_] = Tokenizer.tokenize("📝")
   end
+
+  test "compound" do
+    assert [_] = Tokenizer.tokenize("a-b-c")
+  end
 end

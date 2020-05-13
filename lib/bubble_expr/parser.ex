@@ -27,6 +27,7 @@ defmodule BubbleExpr.Parser do
 
   word =
     string
+    |> optional(ignore(string("-")) |> concat(string))
     |> reduce(:finalize_word)
 
   or_group =
@@ -124,6 +125,12 @@ defmodule BubbleExpr.Parser do
 
   defp finalize_word([str]) do
     {:word, String.downcase(str)}
+  end
+
+  defp finalize_word([a, b]) do
+    a = String.downcase(a)
+    b = String.downcase(b)
+    {:or, [[{:word, a <> b, []}], [{:word, a <> "-" <> b, []}], [{:word, a, []}, {:word, b, []}]]}
   end
 
   defp finalize_rule([a, b, {:assign, v}]) do

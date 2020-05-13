@@ -12,6 +12,7 @@ defmodule BubbleExpr.ParserTest do
     "a [0] b",
     "(a|b)",
     "( a|b|c )  ",
+    "a-bc | foo",
     "a [1+] b",
     "a [1-2=lala] b",
     "(hello | hi) world [End]",
@@ -32,8 +33,18 @@ defmodule BubbleExpr.ParserTest do
     "@fofdsfs+fdsfds"
   ]
 
-  test "parse" do
-    assert {:ok, _} = Parser.parse("a | (b c)[=x]")
+  test "compound nouns" do
+    assert {:ok,
+            %{
+              ast: [
+                {:or,
+                 [
+                   [{:word, "ab", []}],
+                   [{:word, "a-b", []}],
+                   [{:word, "a", []}, {:word, "b", []}]
+                 ], []}
+              ]
+            }} = parse("a-b")
   end
 
   test "parser" do

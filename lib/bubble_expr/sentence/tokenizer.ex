@@ -79,7 +79,7 @@ defmodule BubbleExpr.Sentence.Tokenizer do
   end
 
   defp normalize(word) do
-    Regex.replace(~r/[^\w+]/, word, "")
+    Regex.replace(~r/[^\w+-]/, word, "")
     |> String.downcase()
   end
 
