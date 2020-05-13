@@ -29,9 +29,10 @@ Matching regular expressions
 Match entities, with the help of Spacy and Duckling preprocessing and
 tokenizing the input:
 
-| Match string | Matches      | Does not match |
-|--------------|--------------|----------------|
-| `[PERSON]`   | George Baker | Hello world    |
+| Match string | Matches                         | Does not match  |
+|--------------|---------------------------------|-----------------|
+| `[PERSON]`   | George Baker                    | Hello world     |
+| `[time]`     | I walked to the store yesterday | My name is John |
 
 
 ## Rules overview
@@ -42,6 +43,9 @@ rules. Each individual has the following syntax:
 - Basic words; only alphanumeric characters and the quote characters
   - matching is done on both the lowercased, normalized version of the
     word, and on the lemmatization of the word.
+
+  - use a dash (`-`) to match on compound nouns: `was-machine` matches
+    all of `wasmachine`, `was-machine` and `was machine`.
 
 - `"Literal word sequence"`
   - Matches a literal piece of text, possibly spread out over multiple tokens.
@@ -55,12 +59,24 @@ rules. Each individual has the following syntax:
   - `[2+?]` match 2 or more tokens (non-greedy)
   - `[1-3?]` match 1 to 3 tokens (non-greedy)
 
-- Entity tokens: `[email]` matches a token of type `:entity` with value.kind == `email`
+- Entity tokens: `[email]` matches a token of type `:entity` with
+  value.kind == `email`. Entities are extracted by external means,
+  e.g. by an NLP NER engine like Duckling.
+
+  Entities are automatically captured under a variable with the same
+  name as the entity's kind.
 
 - Regex tokens: `[/regex/]` matches the given regex against the raw text in the token
 
 - OR / grouping construct
-  - `( a | b | c )` matches one token consisting of `a`, `b` or `c`
+
+  - `pizza | fries | chicken` - OR-clause on the root level without
+    parens, matches either token
+
+  - `a ( a | b | c )` - use parentheses to separate OR-clauses;
+    matches one token consisting of first `a`, and then `a`, `b` or
+    `c`.
+
   - `( a )[3+]` matches 3 or more token consisting of `a`
   - `( hi | hello )[=greeting]` matches 1 token and stores it in `greeting`
 
@@ -78,7 +94,6 @@ rules. Each individual has the following syntax:
   Concept compilation is done as part of the parse phase; the concepts
   compiler must must return an `{m, f, a}` triple. In runtime, this
   MFA is called while matching, and thus, it must be a fast function.
-
 
 - Part-of-speech tags (word kinds), e.g.
   - `%VERB` matches any verb
