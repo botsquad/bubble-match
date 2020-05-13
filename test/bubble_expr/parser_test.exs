@@ -7,6 +7,7 @@ defmodule BubbleExpr.ParserTest do
     "",
     "  ",
     "abc def (a)",
+    "(a|b)",
     "x y (a \"hello World\" San | b (y | x) c)",
     "a [0] b",
     "(a|b)",
@@ -20,6 +21,7 @@ defmodule BubbleExpr.ParserTest do
     "%VERB",
     "< a < b c > > d",
     "@foo[=a]",
+    "a | b c (d | e)",
     "@foo.bar @bla hello (@foo | @bar)"
   ]
 
@@ -29,6 +31,10 @@ defmodule BubbleExpr.ParserTest do
     "word[ent]",
     "@fofdsfs+fdsfds"
   ]
+
+  test "parse" do
+    assert {:ok, _} = Parser.parse("a | (b c)[=x]")
+  end
 
   test "parser" do
     assert {:ok, %{ast: nil}} = parse("")

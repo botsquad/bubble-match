@@ -52,6 +52,13 @@ defmodule BubbleExpr.MatcherTest do
     assert :nomatch == Matcher.match("(hello | hi) you", "hello me")
   end
 
+  test "OR works on outer level without parens" do
+    assert {:match, %{}} == Matcher.match("hi | hello", "Hello world!")
+    assert {:match, %{}} == Matcher.match("hi | hello", "Hi world!")
+    assert {:match, %{}} == Matcher.match("hi|hello", "Hi world!")
+    assert :nomatch == Matcher.match("hi | hello", "world")
+  end
+
   test "permutation group" do
     assert {:match, %{}} == Matcher.match("< hello world >", "Hello world!")
     assert {:match, %{}} == Matcher.match("< hello world >", "world Hello")

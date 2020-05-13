@@ -1,5 +1,13 @@
 defmodule BubbleExpr.Token do
-  defstruct raw: nil, value: nil, start: nil, end: nil, type: nil, index: nil
+  @derive Jason.Encoder
+  use BubbleExpr.DslStruct,
+    raw: nil,
+    value: nil,
+    start: nil,
+    end: nil,
+    type: nil,
+    index: nil
+
   alias __MODULE__, as: M
 
   def from_spacy(t) do
@@ -70,4 +78,8 @@ defmodule BubbleExpr.Token do
       raw: ent["body"]
     }
   end
+end
+
+defimpl String.Chars, for: BubbleExpr.Token do
+  def to_string(%BubbleExpr.Token{raw: raw}), do: raw
 end

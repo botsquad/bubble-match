@@ -59,4 +59,18 @@ defmodule BubbleExpr.SentenceTest do
              _awai
            ] = with_ents
   end
+
+  test "encoding" do
+    [hithere, _] = Sentence.sentences_from_spacy(@spacy_json)
+    assert {:ok, _} = Jason.encode(hithere)
+  end
+
+  test "access; to_string" do
+    [hithere, _] = Sentence.sentences_from_spacy(@spacy_json)
+    assert "Hi there." == hithere["text"]
+    assert "Hi there." == hithere[:text]
+    assert "Hi there." == to_string(hithere)
+
+    assert [[_, _, _]] = hithere[:tokenizations]
+  end
 end

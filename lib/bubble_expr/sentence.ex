@@ -1,5 +1,9 @@
 defmodule BubbleExpr.Sentence do
-  defstruct text: nil, tokenizations: []
+  @derive Jason.Encoder
+  use BubbleExpr.DslStruct,
+    text: nil,
+    tokenizations: []
+
   alias BubbleExpr.Sentence.Tokenizer
   alias BubbleExpr.Token
 
@@ -94,4 +98,8 @@ defmodule BubbleExpr.Sentence do
       %{t | index: index}
     end)
   end
+end
+
+defimpl String.Chars, for: BubbleExpr.Sentence do
+  def to_string(%BubbleExpr.Sentence{text: text}), do: text
 end

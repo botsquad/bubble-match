@@ -32,18 +32,9 @@ defmodule BubbleExpr.Parser do
   or_group =
     ignore(string("("))
     |> optional(ws)
-    |> parsec(:rule_seq)
-    |> optional(
-      repeat(
-        optional(ws)
-        |> ignore(string("|"))
-        |> optional(ws)
-        |> parsec(:rule_seq)
-      )
-    )
+    |> parsec(:rules_seq)
     |> optional(ws)
     |> ignore(string(")"))
-    |> tag(:or)
 
   perm_group =
     ignore(string("<"))
@@ -164,6 +155,14 @@ defmodule BubbleExpr.Parser do
     {type, value, []}
   end
 
+  defp finalize_rule([{type, value, meta}, {:eat, v}]) do
+    {type, value, Keyword.put(meta, :repeat, v)}
+  end
+
+  defp finalize_rule([{type, value, meta}, {:assign, v}]) do
+    {type, value, Keyword.put(meta, :assign, v)}
+  end
+
   defp finalize_rule([{type, value}, {:optional, []}]) do
     {:or, [[{type, value, []}], []], []}
   end
@@ -174,6 +173,10 @@ defmodule BubbleExpr.Parser do
 
   defp finalize_rule([{type, value}, {:eat, range}]) do
     {type, value, [repeat: range]}
+  end
+
+  defp finalize_rule([{a, b, c}]) do
+    {a, b, c}
   end
 
   pos =
@@ -202,11 +205,22 @@ defmodule BubbleExpr.Parser do
     r
   end
 
+  defp finalize_rules_seq(r) do
+    {:or, r, []}
+  end
+
   defparsecp(
     :rule_seq,
     parsec(:rule)
     |> repeat(ws |> concat(parsec(:rule)))
     |> reduce(:finalize_seq)
+  )
+
+  defparsecp(
+    :rules_seq,
+    parsec(:rule_seq)
+    |> repeat(optional(ws) |> ignore(string("|")) |> optional(ws) |> parsec(:rule_seq))
+    |> reduce(:finalize_rules_seq)
   )
 
   def parse!(input, opts \\ []) do
@@ -223,16 +237,18 @@ defmodule BubbleExpr.Parser do
 
       input ->
         try do
-          case rule_seq(input) do
-            {:ok, [parsed], "", _, _, _} ->
+          case rules_seq(input) do
+            {:ok, parsed, "", _, _, _} ->
               parsed =
                 case opts[:expand] do
                   false ->
                     parsed
+                    |> reduce_ors()
 
                   _ ->
                     parsed
                     |> expand_permutations()
+                    |> reduce_ors()
                     |> add_implicit_assign()
                     |> ensure_eat_before_rules()
                     |> compile_concepts(opts[:concepts_compiler])
@@ -264,18 +280,21 @@ defmodule BubbleExpr.Parser do
     [{:any, [], [repeat: {0, :infinity, :nongreedy}]} | rules]
   end
 
-  defp walk_rules(rules, processor) do
-    Enum.map(
+  defp reduce_ors(rules) do
+    Enum.flat_map(
       rules,
-      fn node ->
-        {verb, rules, meta} = processor.(node)
+      fn
+        {:or, [[{a, b, c}]], meta} ->
+          [{a, b, Keyword.merge(c, meta)}]
 
-        if is_list(rules) do
-          rules = Enum.map(rules, &walk_rules(&1, processor))
-          {verb, rules, meta}
-        else
-          {verb, rules, meta}
-        end
+        {:or, [rules], []} ->
+          rules
+
+        {verb, rules, meta} when is_list(rules) ->
+          [{verb, Enum.map(rules, &reduce_ors/1), meta}]
+
+        x ->
+          [x]
       end
     )
   end
@@ -335,6 +354,22 @@ defmodule BubbleExpr.Parser do
 
         x ->
           x
+      end
+    )
+  end
+
+  defp walk_rules(rules, processor) do
+    Enum.map(
+      rules,
+      fn node ->
+        {verb, rules, meta} = processor.(node)
+
+        if is_list(rules) do
+          rules = Enum.map(rules, &walk_rules(&1, processor))
+          {verb, rules, meta}
+        else
+          {verb, rules, meta}
+        end
       end
     )
   end
