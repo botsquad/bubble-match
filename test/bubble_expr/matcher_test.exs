@@ -44,6 +44,8 @@ defmodule BubbleExpr.MatcherTest do
 
   test "regex" do
     assert {:match, %{}} == Matcher.match("/\\d+/", "foo 32432")
+    assert {:match, %{"x" => [%{raw: "123"}]}} = Matcher.match("/\\d+/[=x]", "la la lala 123")
+
     assert :nomatch == Matcher.match("/[a-z][a-z]+/", "a")
     assert :nomatch == Matcher.match("/[a-z][a-z]+/", "ASDF")
   end

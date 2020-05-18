@@ -146,8 +146,12 @@ defmodule BubbleExpr.Matcher do
 
       case Regex.scan(re, input_str) do
         [[capture | _]] ->
-          end_idx = t.start + String.length(capture)
-          {ts_match, ts_remaining} = Enum.split_with(ts_remaining, &(&1.start <= end_idx))
+          [before, _] = String.split(input_str, capture, parts: 2)
+
+          start_idx = t.start + String.length(before)
+          {_ignore, rest} = Enum.split_with(ts_remaining, &(&1.end < start_idx))
+          end_idx = start_idx + String.length(capture)
+          {ts_match, ts_remaining} = Enum.split_with(rest, &(&1.start <= end_idx))
           {:match, ts_remaining, Enum.reverse(ts_match), context}
 
         [] ->
