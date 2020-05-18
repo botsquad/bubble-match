@@ -48,6 +48,20 @@ defmodule BubbleExpr.MatcherTest do
     assert :nomatch == Matcher.match("/[a-z][a-z]+/", "ASDF")
   end
 
+  test "regex span whitespace" do
+    assert {:match, %{}} == Matcher.match("/hello world/", "hello world")
+    assert {:match, %{}} == Matcher.match("/hello world/", "hello world lala")
+
+    assert {:match, %{"x" => [a, b]}} =
+             Matcher.match("/hello world/[=x]", "wellhello worldieworld")
+
+    assert "wellhello " == a.raw
+    assert "worldieworld" == b.raw
+
+    assert {:match, %{"value" => _}} =
+             Matcher.match("/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/[=value]", "a@a.nl")
+  end
+
   test "regex with capturing" do
     assert {:match, %{"zip" => [t]}} = Matcher.match("/\\d+/[=zip]", "foo 1234 lala")
     assert "1234 " == t.raw

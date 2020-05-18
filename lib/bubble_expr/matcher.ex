@@ -131,9 +131,29 @@ defmodule BubbleExpr.Matcher do
     |> boolean_match(ts_remaining, context)
   end
 
-  defp match_rule({:regex, re, _}, _rls_remaining, ts_remaining, context) do
-    fn t -> Token.regex?(t, re) end
-    |> boolean_match(ts_remaining, context)
+  defp match_rule({:regex, _re, _}, _rls_remaining, [], _context) do
+    :nomatch
+  end
+
+  defp match_rule({:regex, re, _}, _rls_remaining, [t | _] = ts_remaining, context) do
+    with :nomatch <- boolean_match(&Token.regex?(&1, re), ts_remaining, context) do
+      input_str =
+        case ts_remaining do
+          [%{index: 0} | _] -> Enum.map(ts_remaining, & &1.raw)
+          _ -> [" " | Enum.map(ts_remaining, & &1.raw)]
+        end
+        |> IO.chardata_to_string()
+
+      case Regex.scan(re, input_str) do
+        [[capture | _]] ->
+          end_idx = t.start + String.length(capture)
+          {ts_match, ts_remaining} = Enum.split_with(ts_remaining, &(&1.start <= end_idx))
+          {:match, ts_remaining, Enum.reverse(ts_match), context}
+
+        [] ->
+          :nomatch
+      end
+    end
   end
 
   defp match_rule({:pos, tag, _}, _rls_remaining, ts_remaining, context) do
