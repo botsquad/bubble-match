@@ -1,17 +1,25 @@
-# BubbleExpr
+## Bubblescript Matching Language (BML)
 
 [![Build status](https://travis-ci.com/botsquad/bubble-expr.svg?branch=master)](https://travis-ci.com/github/botsquad/bubble-expr)
 
-NLP rule language for matching natural language against a rule base.
+BML is a rule language for matching natural language against a rule
+base. Think of it as regular expressions for *sentences*. Whereas
+regular expressions work on individual characters, BML rules primarily
+work on a tokenized representation of the string.
 
-**Warning: this project is currently heavily in development. Its syntax and API might change at any time**
+BML ships with a builtin string tokenizer, but for production usage you should look into using a language-specific tokenizer, e.g. to use the output of [Spacy's Doc.to_json][spacy] function.
 
-[Check out the demo environment](http://expr-ninja.apps.botsqd.com/) powered by Phoenix Liveview.
+[spacy]: https://spacy.io/api/doc#to_json
+
+
+> This project is still in development, and as such, the BML syntax is still subject to change.
+
+To play with BML, [check out the demo environment](http://expr-ninja.apps.botsqd.com/), powered by Phoenix Liveview.
 
 
 ## Examples
 
-Matching basic sequences of words
+Matching basic sequences of words:
 
 | Match string  | Example           | Matches? |
 |---------------|-------------------|----------|
@@ -21,7 +29,7 @@ Matching basic sequences of words
 | `hello world` | world hello       | no       |
 
 
-Matching regular expressions
+Matching regular expressions:
 
 | Match string | Example | Matches? |
 |--------------|---------|----------|
@@ -33,7 +41,7 @@ tokenizing the input:
 
 | Match string | Matches                         | Does not match  |
 |--------------|---------------------------------|-----------------|
-| `[PERSON]`   | George Baker                    | Hello world     |
+| `[person]`   | George Baker                    | Hello world     |
 | `[time]`     | I walked to the store yesterday | My name is John |
 
 

@@ -1,4 +1,6 @@
 defmodule BubbleExpr.Sentence.Tokenizer do
+  @moduledoc false
+
   import NimbleParsec
   alias BubbleExpr.Token
 
@@ -47,21 +49,21 @@ defmodule BubbleExpr.Sentence.Tokenizer do
   )
 
   defp match_and_emit_tag(_rest, inp, context, _, offset) do
-    {value, type, raw} =
+    {value, raw} =
       case inp do
         [{:word, [text]}] ->
-          {normalize(text), :naive, text}
+          {normalize(text), text}
 
         [ws, {:word, [text]}] ->
-          {normalize(text), :naive, text <> ws}
+          {normalize(text), text <> ws}
 
         [{:punct, text}] ->
           t = IO.chardata_to_string(text)
-          {t, :punct, t}
+          {t, t}
 
         [ws, {:punct, text}] ->
           t = IO.chardata_to_string(text)
-          {t, :punct, t <> ws}
+          {t, t <> ws}
       end
 
     start = offset - String.length(raw)
@@ -73,7 +75,7 @@ defmodule BubbleExpr.Sentence.Tokenizer do
          start: start,
          end: end_,
          value: value,
-         type: type
+         type: :naive
        }
      ], context}
   end

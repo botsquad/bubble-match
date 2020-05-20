@@ -1,9 +1,9 @@
 defmodule BubbleExpr.Parser do
+  @moduledoc false
+
   import NimbleParsec
 
-  defmodule ParseError do
-    defexception message: "Parse error"
-  end
+  alias BubbleExpr.ParseError
 
   @ws [9, 10, 11, 12, 13, 32]
   ws = ignore(utf8_char(@ws) |> concat(repeat(utf8_char(@ws))))

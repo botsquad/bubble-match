@@ -1,9 +1,5 @@
 defmodule BubbleExpr.DslStruct do
-  @moduledoc """
-  A "DSL Struct" is a struct which can be exposed in Bubblescript.
-
-  Most notable are intent, message, attachment, location, event.
-  """
+  @moduledoc false
 
   defmacro __using__(struct) do
     str_fields = struct |> Keyword.keys() |> Enum.map(&to_string/1)

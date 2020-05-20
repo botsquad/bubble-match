@@ -1,4 +1,6 @@
 defmodule BubbleExpr.Matcher do
+  @moduledoc false
+
   alias BubbleExpr.{Parser, Sentence, Token}
 
   def match(expr, input) when is_list(input) do
