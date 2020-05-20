@@ -10,7 +10,7 @@ defmodule BubbleExpr.Parser do
 
   string = utf8_string(Enum.to_list(?A..?Z) ++ Enum.to_list(?a..?z), min: 1)
 
-  identifier = utf8_string(Enum.to_list(?A..?Z) ++ Enum.to_list(?a..?z), min: 1)
+  identifier = utf8_string([?_] ++ Enum.to_list(?A..?Z) ++ Enum.to_list(?a..?z), min: 1)
 
   defp to_int(a) do
     :string.to_integer(a) |> elem(0)
@@ -117,7 +117,7 @@ defmodule BubbleExpr.Parser do
       symbol.("Start", :start),
       # end of sentence
       symbol.("End", :end),
-      string |> tag(:entity),
+      identifier |> tag(:entity),
       empty()
     ])
     |> optional(assign)
@@ -138,8 +138,13 @@ defmodule BubbleExpr.Parser do
     {a, b, Keyword.put(c, :assign, v)}
   end
 
-  defp finalize_rule([{:any, []}, {:entity, [type]}]) do
+  @entities Application.get_env(:bubble_expr, :valid_entities)
+  defp finalize_rule([{:any, []}, {:entity, [type]}]) when type in @entities do
     {:entity, type, []}
+  end
+
+  defp finalize_rule([{:any, []}, {:entity, [type]}]) do
+    raise ParseError, "Invalid entity: " <> type
   end
 
   defp finalize_rule([_, {:entity, _}]) do

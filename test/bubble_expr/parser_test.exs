@@ -22,6 +22,7 @@ defmodule BubbleExpr.ParserTest do
     "%VERB",
     "< a < b c > > d",
     "@foo[=a]",
+    "[phone_number]",
     "a | b c (d | e)",
     "@foo.bar @bla hello (@foo | @bar)"
   ]
@@ -30,7 +31,8 @@ defmodule BubbleExpr.ParserTest do
     "(",
     "() )",
     "word[ent]",
-    "@fofdsfs+fdsfds"
+    "@fofdsfs+fdsfds",
+    "[nonexisting]"
   ]
 
   test "compound nouns" do
@@ -65,11 +67,11 @@ defmodule BubbleExpr.ParserTest do
   end
 
   test "entities get implicit variable capture" do
-    {:ok, %{ast: ast}} = Parser.parse("[PERSON]")
-    assert [_, {:entity, "PERSON", [assign: "person"]}] = ast
+    {:ok, %{ast: ast}} = Parser.parse("[person]")
+    assert [_, {:entity, "person", [assign: "person"]}] = ast
 
-    {:ok, %{ast: ast}} = Parser.parse("([PERSON])")
-    assert [_, {:or, [[{:entity, "PERSON", [assign: "person"]}]], []}] = ast
+    {:ok, %{ast: ast}} = Parser.parse("([person])")
+    assert [_, {:or, [[{:entity, "person", [assign: "person"]}]], []}] = ast
   end
 
   test "do not error in invalid regex" do

@@ -60,7 +60,7 @@ defmodule BubbleExpr.Token do
 
     %M{
       type: :entity,
-      value: %{kind: ent["label"], provider: "spacy", value: raw},
+      value: %{kind: Inflex.underscore(ent["label"]), provider: "spacy", value: raw},
       start: start,
       end: end_,
       raw: raw
@@ -72,7 +72,7 @@ defmodule BubbleExpr.Token do
 
     %M{
       type: :entity,
-      value: %{kind: ent["dim"], provider: "duckling", value: ent["value"]},
+      value: %{kind: Inflex.underscore(ent["dim"]), provider: "duckling", value: ent["value"]},
       start: start,
       end: end_,
       raw: ent["body"]

@@ -29,9 +29,9 @@ defmodule BubbleExpr.SentenceTest do
 
     assert {:match, _} = BubbleExpr.Matcher.match("[Start] my name is", all)
     assert {:match, _} = BubbleExpr.Matcher.match("hi there \".\" [End]", all)
-    assert {:match, m} = BubbleExpr.Matcher.match("[PERSON]", all)
+    assert {:match, m} = BubbleExpr.Matcher.match("[person]", all)
 
-    assert [%{value: %{kind: "PERSON", value: "George"}}] = m["person"]
+    assert [%{value: %{kind: "person", value: "George"}}] = m["person"]
   end
 
   @duckling_json """

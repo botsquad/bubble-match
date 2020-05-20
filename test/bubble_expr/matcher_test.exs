@@ -201,13 +201,13 @@ defmodule BubbleExpr.MatcherTest do
   end
 
   test "entities" do
-    amsterdam = %Token{type: :entity, start: 10, end: 19, value: %{kind: "location"}}
+    amsterdam = %Token{type: :entity, start: 10, end: 19, value: %{kind: "loc"}}
 
     sentence =
       Sentence.naive_tokenize("I live in Amsterdam")
       |> Sentence.add_tokenization([[amsterdam]])
 
-    assert {:match, %{}} = Matcher.match("live in [location]", sentence)
+    assert {:match, %{}} = Matcher.match("live in [loc]", sentence)
   end
 
   test "repetitions" do
