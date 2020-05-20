@@ -20,6 +20,7 @@ defmodule BubbleMatch.ParserTest do
     "world[1-2]",
     "this is a /regex/",
     "%VERB",
+    "😍",
     "< a < b c > > d",
     "@foo[=a]",
     "[phone_number]",

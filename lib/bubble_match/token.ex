@@ -88,7 +88,7 @@ defmodule BubbleMatch.Token do
   end
 
   def word?(%M{} = t, word) do
-    t.value == word
+    t.value == word || t.raw == word
   end
 
   @doc """

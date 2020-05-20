@@ -18,6 +18,10 @@ defmodule BubbleMatch.MatcherTest do
     assert :nomatch == Matcher.match("hello world", "Hello there cruel world!")
   end
 
+  test "matcher w/ emoji" do
+    assert {:match, %{}} == Matcher.match("😍", "hi 😍")
+  end
+
   test "compound words" do
     assert {:match, %{}} == Matcher.match("was-machine", "wasmachine!")
     assert {:match, %{}} == Matcher.match("was-machine", "was machine!")

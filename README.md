@@ -19,7 +19,7 @@ the output of [Spacy's Doc.to_json][spacy] function.
 The full documentation on the BML syntax and the API reference is
 available [on hexdocs.pm](https://hexdocs.pm/bubble_match/).  To try
 out BML, [check out the demo
-environment](http://expr-ninja.apps.botsqd.com/), powered by Phoenix
+environment](https://bml.botsquad.com/), powered by Phoenix
 Liveview.
 
 

@@ -6,9 +6,11 @@ defmodule BubbleMatch.Parser do
   alias BubbleMatch.ParseError
 
   @ws [9, 10, 11, 12, 13, 32]
-  ws = ignore(utf8_char(@ws) |> concat(repeat(utf8_char(@ws))))
+  ws = ignore(utf8_string(@ws, min: 1))
 
-  string = utf8_string(Enum.to_list(?A..?Z) ++ Enum.to_list(?a..?z), min: 1)
+  special_chars = '`~!@#$%^&*()_+=-{}|\\][\';":?><,./' ++ @ws
+
+  string = utf8_string(Enum.map(special_chars, &{:not, &1}), min: 1)
 
   identifier = utf8_string([?_] ++ Enum.to_list(?A..?Z) ++ Enum.to_list(?a..?z), min: 1)
 
@@ -91,14 +93,14 @@ defmodule BubbleMatch.Parser do
   # slot assignment
   concept =
     ignore(string("@"))
-    |> concat(string)
-    |> optional(repeat(string(".") |> concat(string)))
+    |> concat(identifier)
+    |> optional(repeat(string(".") |> concat(identifier)))
     |> reduce(:concept)
 
   # slot assignment
   assign =
     ignore(string("="))
-    |> concat(string)
+    |> concat(identifier)
     |> unwrap_and_tag(:assign)
 
   control_block =
