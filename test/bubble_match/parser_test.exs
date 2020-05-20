@@ -25,7 +25,10 @@ defmodule BubbleMatch.ParserTest do
     "@foo[=a]",
     "[phone_number]",
     "a | b c (d | e)",
-    "@foo.bar @bla hello (@foo | @bar)"
+    "@foo.bar @bla hello (@foo | @bar)",
+    # backward compatibility
+    ".*",
+    "^abc$"
   ]
 
   @invalid [

@@ -248,7 +248,12 @@ defmodule BubbleMatch.Parser do
     end
   end
 
-  def parse(input, opts \\ []) do
+  def parse(input, opts \\ [])
+
+  def parse(".*", opts), do: parse("[1+]", opts)
+  def parse("^" <> _ = s, opts), do: parse("/#{s}/", opts)
+
+  def parse(input, opts) do
     case String.trim(input) do
       "" ->
         {:ok, %BubbleMatch{}}
