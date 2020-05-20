@@ -138,7 +138,11 @@ defmodule BubbleMatch.Parser do
     {a, b, Keyword.put(c, :assign, v)}
   end
 
-  @entities Application.get_env(:bubble_match, :valid_entities)
+  entitites_file = "#{__DIR__}/valid_entities.txt"
+  @external_resource entitites_file
+  @entities Application.get_env(:bubble_match, :valid_entities) ||
+              File.read!(entitites_file) |> String.trim() |> String.split("\n")
+
   defp finalize_rule([{:any, []}, {:entity, [type]}]) when type in @entities do
     {:entity, type, []}
   end

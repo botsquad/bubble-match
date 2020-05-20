@@ -23,7 +23,7 @@ defmodule BubbleMatch.MixProject do
 
   defp package do
     %{
-      files: ["lib", "config", "mix.exs", "*.md", "LICENSE", "VERSION"],
+      files: ["lib", "mix.exs", "*.md", "LICENSE", "VERSION"],
       maintainers: ["Arjan Scherpenisse"],
       licenses: ["MIT"],
       links: %{"Github" => "https://github.com/botsquad/bubble-match"}
