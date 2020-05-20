@@ -6,12 +6,12 @@ defmodule BubbleMatchTest do
   end
 
   test "parse" do
-    assert {:ok, %BubbleMatch{}} = BubbleExpr.parse("hello (there | world)")
+    assert {:ok, %BubbleMatch{}} = BubbleMatch.parse("hello (there | world)")
     assert {:error, _} = BubbleMatch.parse("hello (")
   end
 
   test "parse!" do
-    assert %BubbleMatch{} = BubbleExpr.parse!("hello (there | world)")
-    assert_raise BubbleMatch.ParseError, fn -> BubbleExpr.parse!("hello (") end
+    assert %BubbleMatch{} = BubbleMatch.parse!("hello (there | world)")
+    assert_raise BubbleMatch.ParseError, fn -> BubbleMatch.parse!("hello (") end
   end
 end
