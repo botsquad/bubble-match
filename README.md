@@ -1,20 +1,26 @@
 ## Bubblescript Matching Language (BML)
 
 [![Build status](https://travis-ci.com/botsquad/bubble-match.svg?branch=master)](https://travis-ci.com/github/botsquad/bubble-match)
+[![Hex pm](http://img.shields.io/hexpm/v/bubble_match.svg?style=flat)](https://hex.pm/packages/bubble_match)
 
 BML is a rule language for matching natural language against a rule
 base. Think of it as regular expressions for *sentences*. Whereas
 regular expressions work on individual characters, BML rules primarily
 work on a tokenized representation of the string.
 
-BML ships with a builtin string tokenizer, but for production usage you should look into using a language-specific tokenizer, e.g. to use the output of [Spacy's Doc.to_json][spacy] function.
+BML ships with a builtin string tokenizer, but for production usage
+you should look into using a language-specific tokenizer, e.g. to use
+the output of [Spacy's Doc.to_json][spacy] function.
 
 [spacy]: https://spacy.io/api/doc#to_json
 
-
 > This project is still in development, and as such, the BML syntax is still subject to change.
 
-To play with BML, [check out the demo environment](http://expr-ninja.apps.botsqd.com/), powered by Phoenix Liveview.
+The full documentation on the BML syntax and the API reference is
+available [on hexdocs.pm](https://hexdocs.pm/bubble_match/).  To try
+out BML, [check out the demo
+environment](http://expr-ninja.apps.botsqd.com/), powered by Phoenix
+Liveview.
 
 
 ## Examples
