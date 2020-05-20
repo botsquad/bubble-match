@@ -29,3 +29,11 @@ defmodule BubbleExpr do
   @spec parse!(expr :: String.t(), parse_opts()) :: t()
   defdelegate parse!(expr, opts \\ []), to: BubbleExpr.Parser
 end
+
+defimpl Inspect, for: BubbleExpr do
+  import Inspect.Algebra
+
+  def inspect(_dict, _opts) do
+    concat(["#BubbleExpr<>"])
+  end
+end

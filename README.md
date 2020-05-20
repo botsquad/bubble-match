@@ -133,7 +133,20 @@ input through an NLP preprocessor like Spacy, which does tokenize an
 input into individual sentences.
 
 
+## Sigil
 
+For use within Elixir, it is possible to use a `~m` sigil which parses
+the given BML query on compile-time:
+
+```elixir
+defmodule MyModule do
+  use BubbleExpr.Sigil
+
+  def greeting?(input) do
+    BubbleExpr.match(~m"hello | hi | howdy", input) != :nomatch
+  end
+end
+```
 
 
 ## Installation
