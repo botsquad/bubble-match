@@ -5,7 +5,7 @@ use Mix.Config
 # https://spacy.io/api/annotation#named-entities and the Duckling
 # entitites, https://github.com/facebook/duckling. Names are
 # lowercased and camelized.
-config :bubble_expr, valid_entities: ~w(
+config :bubble_match, valid_entities: ~w(
   amount_of_money
   credit_card_number
   distance

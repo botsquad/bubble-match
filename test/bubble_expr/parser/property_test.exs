@@ -1,8 +1,8 @@
-defmodule BubbleExpr.Parser.PropertyTest do
+defmodule BubbleMatch.Parser.PropertyTest do
   use ExUnit.Case
   use ExUnitProperties
 
-  alias BubbleExpr.Parser
+  alias BubbleMatch.Parser
 
   setup do
     Application.put_env(:stream_data, :max_runs, 1000)

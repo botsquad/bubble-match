@@ -1,9 +1,9 @@
-defmodule BubbleExpr.Parser do
+defmodule BubbleMatch.Parser do
   @moduledoc false
 
   import NimbleParsec
 
-  alias BubbleExpr.ParseError
+  alias BubbleMatch.ParseError
 
   @ws [9, 10, 11, 12, 13, 32]
   ws = ignore(utf8_char(@ws) |> concat(repeat(utf8_char(@ws))))
@@ -138,7 +138,7 @@ defmodule BubbleExpr.Parser do
     {a, b, Keyword.put(c, :assign, v)}
   end
 
-  @entities Application.get_env(:bubble_expr, :valid_entities)
+  @entities Application.get_env(:bubble_match, :valid_entities)
   defp finalize_rule([{:any, []}, {:entity, [type]}]) when type in @entities do
     {:entity, type, []}
   end
@@ -245,7 +245,7 @@ defmodule BubbleExpr.Parser do
   def parse(input, opts \\ []) do
     case String.trim(input) do
       "" ->
-        {:ok, %BubbleExpr{}}
+        {:ok, %BubbleMatch{}}
 
       input ->
         try do
@@ -266,7 +266,7 @@ defmodule BubbleExpr.Parser do
                     |> compile_concepts(opts[:concepts_compiler])
                 end
 
-              {:ok, %BubbleExpr{ast: parsed}}
+              {:ok, %BubbleMatch{ast: parsed}}
 
             {:ok, _parsed, remain, _, _, _} ->
               {:error, "Parse error near \"#{remain}\""}

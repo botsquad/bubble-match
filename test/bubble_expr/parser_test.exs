@@ -1,7 +1,7 @@
-defmodule BubbleExpr.ParserTest do
+defmodule BubbleMatch.ParserTest do
   use ExUnit.Case
 
-  alias BubbleExpr.Parser
+  alias BubbleMatch.Parser
 
   @valid [
     "",
@@ -111,7 +111,7 @@ defmodule BubbleExpr.ParserTest do
       Parser.parse("hello _ world")
     end
 
-    assert {:ok, %{ast: [_, {:concept, %BubbleExpr{}, [assign: "intent"]}]}} =
+    assert {:ok, %{ast: [_, {:concept, %BubbleMatch{}, [assign: "intent"]}]}} =
              Parser.parse("@intent", concepts_compiler: compiler)
 
     assert_receive({:compiled, _})

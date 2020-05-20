@@ -7,7 +7,7 @@ pattern-matching yet? If not, take a look at those before using the
 cheat sheet below.
 
 
-> Note: BubbleExpr is inspired on the [Pullstring pattern match
+> Note: BubbleMatch is inspired on the [Pullstring pattern match
 > language][1]. Pullstring has been acquired by Apple in 2019 and all
 > their docs are offline. This cheat sheet is copied and adapted from
 > the now archived Pullstring documentation.

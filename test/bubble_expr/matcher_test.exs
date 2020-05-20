@@ -1,7 +1,7 @@
-defmodule BubbleExpr.MatcherTest do
+defmodule BubbleMatch.MatcherTest do
   use ExUnit.Case
 
-  alias BubbleExpr.{Matcher, Sentence, Token}
+  alias BubbleMatch.{Matcher, Sentence, Token}
 
   test "edge cases" do
     assert :nomatch == Matcher.match("", "Hello world!")
@@ -238,7 +238,7 @@ defmodule BubbleExpr.MatcherTest do
   end
 
   defp compile(expr) do
-    BubbleExpr.Parser.parse!(expr, concepts_compiler: &compile_concept/1)
+    BubbleMatch.Parser.parse!(expr, concepts_compiler: &compile_concept/1)
   end
 
   defp compile_concept(a) do

@@ -1,4 +1,4 @@
-defmodule BubbleExpr.Token do
+defmodule BubbleMatch.Token do
   @moduledoc """
   A token is a single word or a part of the sentence. A sentence is a sequence of tokens.
 
@@ -35,7 +35,7 @@ defmodule BubbleExpr.Token do
   @type t :: %__MODULE__{}
 
   @derive Jason.Encoder
-  use BubbleExpr.DslStruct,
+  use BubbleMatch.DslStruct,
     raw: nil,
     value: nil,
     start: nil,
@@ -141,6 +141,6 @@ defmodule BubbleExpr.Token do
   end
 end
 
-defimpl String.Chars, for: BubbleExpr.Token do
-  def to_string(%BubbleExpr.Token{raw: raw}), do: raw
+defimpl String.Chars, for: BubbleMatch.Token do
+  def to_string(%BubbleMatch.Token{raw: raw}), do: raw
 end

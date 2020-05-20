@@ -1,4 +1,4 @@
-defmodule BubbleExpr.Sigil do
+defmodule BubbleMatch.Sigil do
   @doc """
   Define the `~m` sigil for compile-time parsing of BML expressions.
 
@@ -7,10 +7,10 @@ defmodule BubbleExpr.Sigil do
 
   ```elixir
   defmodule MyModule do
-    use BubbleExpr.Sigil
+    use BubbleMatch.Sigil
 
     def greeting?(input) do
-      BubbleExpr.match(~m"hello | hi | howdy", input) != :nomatch
+      BubbleMatch.match(~m"hello | hi | howdy", input) != :nomatch
     end
   end
   ```
@@ -18,7 +18,7 @@ defmodule BubbleExpr.Sigil do
   """
 
   defmacro sigil_m({:<<>>, _, [expr]}, []) do
-    Macro.escape(BubbleExpr.parse!(expr))
+    Macro.escape(BubbleMatch.parse!(expr))
   end
 
   defmacro __using__(_args) do

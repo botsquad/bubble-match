@@ -1,8 +1,8 @@
-defmodule BubbleExpr.Sentence.Tokenizer do
+defmodule BubbleMatch.Sentence.Tokenizer do
   @moduledoc false
 
   import NimbleParsec
-  alias BubbleExpr.Token
+  alias BubbleMatch.Token
 
   @ws [9, 10, 11, 12, 13, 32]
   ws = utf8_string(@ws, min: 1)

@@ -1,6 +1,6 @@
 ## Bubblescript Matching Language (BML)
 
-[![Build status](https://travis-ci.com/botsquad/bubble-expr.svg?branch=master)](https://travis-ci.com/github/botsquad/bubble-expr)
+[![Build status](https://travis-ci.com/botsquad/bubble-match.svg?branch=master)](https://travis-ci.com/github/botsquad/bubble-match)
 
 BML is a rule language for matching natural language against a rule
 base. Think of it as regular expressions for *sentences*. Whereas
@@ -124,7 +124,7 @@ The expression matching works on a per-sentence basis; the idea is
 that it does not make sense to create expressions that span over
 sentences.
 
-The builtin sentence tokenizer (`BubbleExpr.Sentence.Tokenizer`) does
+The builtin sentence tokenizer (`BubbleMatch.Sentence.Tokenizer`) does
 **not** have the concept of sentences, and thus treats each input as a
 single sentence, even in the existence of periods in the input.
 
@@ -140,10 +140,10 @@ the given BML query on compile-time:
 
 ```elixir
 defmodule MyModule do
-  use BubbleExpr.Sigil
+  use BubbleMatch.Sigil
 
   def greeting?(input) do
-    BubbleExpr.match(~m"hello | hi | howdy", input) != :nomatch
+    BubbleMatch.match(~m"hello | hi | howdy", input) != :nomatch
   end
 end
 ```
@@ -152,16 +152,16 @@ end
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `bubble_expr` to your list of dependencies in `mix.exs`:
+by adding `bubble_match` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:bubble_expr, "~> 0.1.0"}
+    {:bubble_match, "~> 0.1.0"}
   ]
 end
 ```
 
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/bubble_expr](https://hexdocs.pm/bubble_expr).
+be found at [https://hexdocs.pm/bubble_match](https://hexdocs.pm/bubble_match).

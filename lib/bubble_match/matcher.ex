@@ -1,7 +1,7 @@
-defmodule BubbleExpr.Matcher do
+defmodule BubbleMatch.Matcher do
   @moduledoc false
 
-  alias BubbleExpr.{Parser, Sentence, Token}
+  alias BubbleMatch.{Parser, Sentence, Token}
 
   def match(expr, input) when is_list(input) do
     Enum.reduce(input, :nomatch, fn
@@ -24,7 +24,7 @@ defmodule BubbleExpr.Matcher do
     match(expr, sentence)
   end
 
-  def match(%BubbleExpr{} = expr, %Sentence{} = sentence) do
+  def match(%BubbleMatch{} = expr, %Sentence{} = sentence) do
     Enum.reduce_while(sentence.tokenizations, :nomatch, fn tokens, acc ->
       case match_rules(expr.ast, tokens, [], %{}) do
         {:match, _, _, context} ->

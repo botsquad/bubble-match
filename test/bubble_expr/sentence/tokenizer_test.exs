@@ -1,7 +1,7 @@
-defmodule BubbleExpr.Sentence.TokenizerTest do
+defmodule BubbleMatch.Sentence.TokenizerTest do
   use ExUnit.Case
 
-  alias BubbleExpr.Sentence.Tokenizer
+  alias BubbleMatch.Sentence.Tokenizer
 
   test "tokenize" do
     assert [hello, comma, _, _] = Tokenizer.tokenize("Hello, world.")

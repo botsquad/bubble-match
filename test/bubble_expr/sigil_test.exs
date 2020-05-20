@@ -1,17 +1,17 @@
-defmodule BubbleExpr.SigilTest do
+defmodule BubbleMatch.SigilTest do
   use ExUnit.Case
 
-  use BubbleExpr.Sigil
+  use BubbleMatch.Sigil
 
   test "sigil" do
-    assert {:match, _} = BubbleExpr.match(~m/hello | hi/, "hi there")
-    assert :nomatch = BubbleExpr.match(~m/hello | hi/, "hullo")
+    assert {:match, _} = BubbleMatch.match(~m/hello | hi/, "hi there")
+    assert :nomatch = BubbleMatch.match(~m/hello | hi/, "hullo")
   end
 
   @match ~m/dd/
 
   test "sigil in attr" do
-    assert %BubbleExpr{} = @match
-    assert :nomatch = BubbleExpr.match(@match, "hullo")
+    assert %BubbleMatch{} = @match
+    assert :nomatch = BubbleMatch.match(@match, "hullo")
   end
 end

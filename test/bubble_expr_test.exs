@@ -1,17 +1,17 @@
-defmodule BubbleExprTest do
+defmodule BubbleMatchTest do
   use ExUnit.Case
 
   test "match" do
-    assert {:match, %{}} == BubbleExpr.match("hello", "hello")
+    assert {:match, %{}} == BubbleMatch.match("hello", "hello")
   end
 
   test "parse" do
-    assert {:ok, %BubbleExpr{}} = BubbleExpr.parse("hello (there | world)")
-    assert {:error, _} = BubbleExpr.parse("hello (")
+    assert {:ok, %BubbleMatch{}} = BubbleExpr.parse("hello (there | world)")
+    assert {:error, _} = BubbleMatch.parse("hello (")
   end
 
   test "parse!" do
-    assert %BubbleExpr{} = BubbleExpr.parse!("hello (there | world)")
-    assert_raise BubbleExpr.ParseError, fn -> BubbleExpr.parse!("hello (") end
+    assert %BubbleMatch{} = BubbleExpr.parse!("hello (there | world)")
+    assert_raise BubbleMatch.ParseError, fn -> BubbleExpr.parse!("hello (") end
   end
 end

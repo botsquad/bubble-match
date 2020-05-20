@@ -1,7 +1,7 @@
-defmodule BubbleExpr.SentenceTest do
+defmodule BubbleMatch.SentenceTest do
   use ExUnit.Case
 
-  alias BubbleExpr.Sentence
+  alias BubbleMatch.Sentence
 
   @spacy_json """
               {"ents":[{"end":27,"label":"PERSON","start":21}],"sents":[{"end":9,"start":0},{"end":27,"start":10}],"text":"Hi there. My name is George","tokens":[{"dep":"ROOT","end":2,"head":0,"id":0,"lemma":"hi","norm":"hi","pos":"INTJ","start":0,"string":"Hi ","tag":"UH"},{"dep":"advmod","end":8,"head":0,"id":1,"lemma":"there","norm":"there","pos":"ADV","start":3,"string":"there","tag":"RB"},{"dep":"punct","end":9,"head":0,"id":2,"lemma":".","norm":".","pos":"PUNCT","start":8,"string":". ","tag":"."},{"dep":"poss","end":12,"head":4,"id":3,"lemma":"-PRON-","norm":"my","pos":"DET","start":10,"string":"My ","tag":"PRP$"},{"dep":"nsubj","end":17,"head":5,"id":4,"lemma":"name","norm":"name","pos":"NOUN","start":13,"string":"name ","tag":"NN"},{"dep":"ROOT","end":20,"head":5,"id":5,"lemma":"be","norm":"is","pos":"AUX","start":18,"string":"is ","tag":"VBZ"},{"dep":"attr","end":27,"head":5,"id":6,"lemma":"George","norm":"george","pos":"PROPN","start":21,"string":"George","tag":"NNP"}]}
@@ -22,14 +22,14 @@ defmodule BubbleExpr.SentenceTest do
   test "match from spacy" do
     all = [hithere, mynameis] = Sentence.sentences_from_spacy(@spacy_json)
 
-    assert {:match, _} = BubbleExpr.Matcher.match("%NOUN", mynameis)
+    assert {:match, _} = BubbleMatch.Matcher.match("%NOUN", mynameis)
 
-    assert {:match, _} = BubbleExpr.Matcher.match("my name is", mynameis)
-    assert :nomatch = BubbleExpr.Matcher.match("my name is", hithere)
+    assert {:match, _} = BubbleMatch.Matcher.match("my name is", mynameis)
+    assert :nomatch = BubbleMatch.Matcher.match("my name is", hithere)
 
-    assert {:match, _} = BubbleExpr.Matcher.match("[Start] my name is", all)
-    assert {:match, _} = BubbleExpr.Matcher.match("hi there \".\" [End]", all)
-    assert {:match, m} = BubbleExpr.Matcher.match("[person]", all)
+    assert {:match, _} = BubbleMatch.Matcher.match("[Start] my name is", all)
+    assert {:match, _} = BubbleMatch.Matcher.match("hi there \".\" [End]", all)
+    assert {:match, m} = BubbleMatch.Matcher.match("[person]", all)
 
     assert [%{value: %{kind: "person", value: "George"}}] = m["person"]
   end

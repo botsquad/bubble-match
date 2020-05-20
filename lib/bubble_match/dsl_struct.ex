@@ -1,4 +1,4 @@
-defmodule BubbleExpr.DslStruct do
+defmodule BubbleMatch.DslStruct do
   @moduledoc false
 
   defmacro __using__(struct) do

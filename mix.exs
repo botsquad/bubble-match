@@ -1,14 +1,14 @@
-defmodule BubbleExpr.MixProject do
+defmodule BubbleMatch.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :bubble_expr,
+      app: :bubble_match,
       version: "0.1.0",
       elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      docs: [main: "BubbleExpr"]
+      docs: [main: "BubbleMatch"]
     ]
   end
 

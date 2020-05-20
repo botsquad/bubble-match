@@ -1,4 +1,4 @@
-defmodule BubbleExpr.Sentence do
+defmodule BubbleMatch.Sentence do
   @moduledoc """
   A data structure which holds a tokenized sentence.
 
@@ -13,12 +13,12 @@ defmodule BubbleExpr.Sentence do
   """
 
   @derive Jason.Encoder
-  use BubbleExpr.DslStruct,
+  use BubbleMatch.DslStruct,
     text: nil,
     tokenizations: []
 
-  alias BubbleExpr.Sentence.Tokenizer
-  alias BubbleExpr.Token
+  alias BubbleMatch.Sentence.Tokenizer
+  alias BubbleMatch.Token
 
   @type t :: __MODULE__
 
@@ -144,6 +144,6 @@ defmodule BubbleExpr.Sentence do
   end
 end
 
-defimpl String.Chars, for: BubbleExpr.Sentence do
-  def to_string(%BubbleExpr.Sentence{text: text}), do: text
+defimpl String.Chars, for: BubbleMatch.Sentence do
+  def to_string(%BubbleMatch.Sentence{text: text}), do: text
 end
