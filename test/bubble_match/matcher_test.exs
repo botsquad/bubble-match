@@ -46,6 +46,11 @@ defmodule BubbleMatch.MatcherTest do
     assert {:match, _} = Matcher.match("\"Yo\"[2]", "Yo Yo Yo")
   end
 
+  test "single quoted literal" do
+    assert {:match, %{}} == Matcher.match("'world'", "Hello, world")
+    assert {:match, %{}} == Matcher.match("'Hello'", "Hello world")
+  end
+
   test "regex" do
     assert {:match, %{}} == Matcher.match("/\\d+/", "foo 32432")
     assert {:match, %{"x" => [%{raw: "123"}]}} = Matcher.match("/\\d+/[=x]", "la la lala 123")

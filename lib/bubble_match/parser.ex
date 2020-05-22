@@ -20,12 +20,13 @@ defmodule BubbleMatch.Parser do
 
   int = times(utf8_char([?0..?9]), min: 1) |> reduce(:to_int)
 
-  literal =
-    ignore(string("\""))
-    |> repeat(utf8_char([{:not, ?"}]))
+  literal = fn char ->
+    ignore(utf8_char([char]))
+    |> repeat(utf8_char([{:not, char}]))
     |> reduce(:to_string)
-    |> ignore(string("\""))
+    |> ignore(utf8_char([char]))
     |> unwrap_and_tag(:literal)
+  end
 
   word =
     string
@@ -208,7 +209,8 @@ defmodule BubbleMatch.Parser do
       word,
       regex,
       pos,
-      literal,
+      literal.(?"),
+      literal.(?'),
       or_group,
       perm_group,
       concept,

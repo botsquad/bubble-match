@@ -23,6 +23,8 @@ defmodule BubbleMatch.ParserTest do
     "😍",
     "< a < b c > > d",
     "@foo[=a]",
+    "this is a \"literal\" sentence ",
+    "this is a 'single quoted' literal",
     "[phone_number]",
     "a | b c (d | e)",
     "@foo.bar @bla hello (@foo | @bar)",
