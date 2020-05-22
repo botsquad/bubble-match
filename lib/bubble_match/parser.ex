@@ -279,7 +279,7 @@ defmodule BubbleMatch.Parser do
                     |> compile_concepts(opts[:concepts_compiler])
                 end
 
-              {:ok, %BubbleMatch{ast: parsed}}
+              {:ok, %BubbleMatch{ast: parsed, q: input}}
 
             {:ok, _parsed, remain, _, _, _} ->
               {:error, "Parse error near \"#{remain}\""}

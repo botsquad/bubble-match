@@ -3,7 +3,7 @@ defmodule BubbleMatch do
   @external_resource readme
   @moduledoc File.read!(readme)
 
-  defstruct ast: nil
+  defstruct ast: nil, q: ""
 
   @type t :: __MODULE__
   @type input :: [input] | String.t() | BubbleMatch.Sentence.t()
@@ -33,7 +33,19 @@ end
 defimpl Inspect, for: BubbleMatch do
   import Inspect.Algebra
 
-  def inspect(_dict, _opts) do
-    concat(["#BubbleMatch<>"])
+  def inspect(struct, _opts) do
+    concat(["#BML<", struct.q, ">"])
+  end
+end
+
+defimpl String.Chars, for: BubbleMatch do
+  def to_string(struct) do
+    struct.q
+  end
+end
+
+defimpl Jason.Encoder, for: BubbleMatch do
+  def encode(struct, opts) do
+    Jason.Encode.string(struct.q, opts)
   end
 end
