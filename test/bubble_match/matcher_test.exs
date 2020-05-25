@@ -12,7 +12,6 @@ defmodule BubbleMatch.MatcherTest do
     assert {:match, %{}} == Matcher.match("world", "Hello world!")
     assert {:match, %{}} == Matcher.match("hello world", "Hello world!")
     assert {:match, %{}} == Matcher.match("HELLO World", "Hello world!")
-    assert :nomatch == Matcher.match("hello world", "Hello, world!")
     assert :nomatch == Matcher.match("world hello", "Hello world!")
     assert :nomatch == Matcher.match("hello world", "Hello there world!")
     assert :nomatch == Matcher.match("hello world", "Hello there cruel world!")
@@ -252,6 +251,16 @@ defmodule BubbleMatch.MatcherTest do
     # implicit assign
     assert {:match, %{"flower" => [_]}} = Matcher.match(compile("like @flower"), "I like Tulips")
   end
+
+  test "punctuation is optional; alternative tokenization is added" do
+    assert {:match, %{}} == Matcher.match("hello world [End]", "Hello world!")
+    assert {:match, %{}} == Matcher.match("hello world", "Hello, world!")
+    assert {:match, %{}} == Matcher.match("hello world", "Hello, *@#($)@ world!")
+
+    assert :nomatch == Matcher.match("hello world", "hello asdf world")
+  end
+
+  ###
 
   defp compile(expr) do
     BubbleMatch.Parser.parse!(expr, concepts_compiler: &compile_concept/1)

@@ -49,21 +49,21 @@ defmodule BubbleMatch.Sentence.Tokenizer do
   )
 
   defp match_and_emit_tag(_rest, inp, context, _, offset) do
-    {value, raw} =
+    {value, raw, type} =
       case inp do
         [{:word, [text]}] ->
-          {normalize(text), text}
+          {normalize(text), text, :naive}
 
         [ws, {:word, [text]}] ->
-          {normalize(text), text <> ws}
+          {normalize(text), text <> ws, :naive}
 
         [{:punct, text}] ->
           t = IO.chardata_to_string(text)
-          {t, t}
+          {t, t, :punct}
 
         [ws, {:punct, text}] ->
           t = IO.chardata_to_string(text)
-          {t, t <> ws}
+          {t, t <> ws, :punct}
       end
 
     start = offset - String.length(raw)
@@ -75,7 +75,7 @@ defmodule BubbleMatch.Sentence.Tokenizer do
          start: start,
          end: end_,
          value: value,
-         type: :naive
+         type: type
        }
      ], context}
   end
@@ -100,5 +100,9 @@ defmodule BubbleMatch.Sentence.Tokenizer do
           %{token | index: index}
         end)
     end
+  end
+
+  def strip_punct(tokens) do
+    tokens |> Enum.reject(&(&1.type == :punct))
   end
 end

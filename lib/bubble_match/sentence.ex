@@ -41,7 +41,8 @@ defmodule BubbleMatch.Sentence do
 
   def naive_tokenize(input) when is_binary(input) do
     tokens = Tokenizer.tokenize(input)
-    %M{text: input, tokenizations: [tokens]}
+    no_punct = Tokenizer.strip_punct(tokens)
+    %M{text: input, tokenizations: [no_punct, tokens]}
   end
 
   @doc """
