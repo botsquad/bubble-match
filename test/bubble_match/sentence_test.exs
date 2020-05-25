@@ -11,9 +11,9 @@ defmodule BubbleMatch.SentenceTest do
   test "from_spacy" do
     [hithere, mynameis] = Sentence.sentences_from_spacy(@spacy_json)
 
-    assert [[_, _, _]] = hithere.tokenizations
+    assert [_, [_, _, _]] = hithere.tokenizations
 
-    assert [with_ents, raw_tokens] = mynameis.tokenizations
+    assert [with_ents, _no_punct, raw_tokens] = mynameis.tokenizations
 
     assert ~w(my name is george) == Enum.map(raw_tokens, & &1.value.norm)
     assert ~w(spacy spacy spacy entity)a == Enum.map(with_ents, & &1.type)
@@ -34,6 +34,17 @@ defmodule BubbleMatch.SentenceTest do
     assert [%{value: %{kind: "person", value: "George"}}] = m["person"]
   end
 
+  @hello_world_json """
+                    {"text": "Hello, world", "ents": [], "sents": [{"start": 0, "end": 12}], "tokens": [{"id": 0, "start": 0, "end": 5, "pos": "INTJ", "tag": "UH", "dep": "ROOT", "head": 0, "string": "Hello", "lemma": "hello", "norm": "hello"}, {"id": 1, "start": 5, "end": 6, "pos": "PUNCT", "tag": ",", "dep": "punct", "head": 2, "string": ", ", "lemma": ",", "norm": ","}, {"id": 2, "start": 7, "end": 12, "pos": "NOUN", "tag": "NN", "dep": "npadvmod", "head": 0, "string": "world", "lemma": "world", "norm": "world"}]}
+                    """
+                    |> Jason.decode!()
+
+  test "spacy ignore punctuation" do
+    [sent] = Sentence.sentences_from_spacy(@hello_world_json)
+
+    assert {:match, _} = BubbleMatch.Matcher.match("hello world", sent)
+  end
+
   @duckling_json """
                  [{"body":"the day after tomorrow","start":15,"value":{"values":[{"value":"2020-04-30T00:00:00.000+02:00","grain":"day","type":"value"}],"value":"2020-04-30T00:00:00.000+02:00","grain":"day","type":"value"},"end":37,"dim":"time","latent":false},{"body":"10 miles","start":39,"value":{"value":10,"type":"value","unit":"mile"},"end":47,"dim":"distance","latent":false}]
                  """
@@ -44,7 +55,7 @@ defmodule BubbleMatch.SentenceTest do
       Sentence.naive_tokenize("My birthday is the day after tomorrow, 10 miles away")
       |> Sentence.add_duckling_entities(@duckling_json)
 
-    assert [with_ents, _raw_tokens] = sentence.tokenizations
+    assert [with_ents, _without_punct, _raw_tokens] = sentence.tokenizations
 
     assert [
              %{value: "my"},
@@ -70,7 +81,5 @@ defmodule BubbleMatch.SentenceTest do
     assert "Hi there." == hithere["text"]
     assert "Hi there." == hithere[:text]
     assert "Hi there." == to_string(hithere)
-
-    assert [[_, _, _]] = hithere[:tokenizations]
   end
 end

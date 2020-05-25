@@ -57,7 +57,9 @@ defmodule BubbleMatch.Sentence do
   def sentences_from_spacy(spacy_json) do
     spacy_sentences_split(spacy_json["sents"], spacy_json, [])
     |> Enum.map(fn {text, tokens, entities} ->
-      %M{text: text, tokenizations: [tokens]}
+      no_punct = tokens |> Enum.reject(&(&1.value.pos == "PUNCT"))
+
+      %M{text: text, tokenizations: [no_punct, tokens]}
       |> add_spacy_entities(entities, spacy_json)
     end)
   end
