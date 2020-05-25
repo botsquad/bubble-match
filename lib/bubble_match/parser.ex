@@ -183,11 +183,19 @@ defmodule BubbleMatch.Parser do
   end
 
   defp finalize_rule([{type, value}, {:optional, []}]) do
-    {:or, [[{type, value, []}], []], []}
+    {type, value, [repeat: {0, 1, :greedy}]}
+  end
+
+  defp finalize_rule([{type, value, meta}, {:optional, []}]) do
+    {type, value, Keyword.put(meta, :repeat, {0, 1, :greedy})}
   end
 
   defp finalize_rule([{type, value}, {:assign, _} = kv]) do
     {type, value, [kv]}
+  end
+
+  defp finalize_rule([{_, _}, {:optional, _}, {:eat, _}]) do
+    raise ParseError, "Cannot combine optional and repeat modifiers"
   end
 
   defp finalize_rule([{type, value}, {:eat, range}]) do
@@ -217,7 +225,8 @@ defmodule BubbleMatch.Parser do
       string("_") |> tag(:underscore),
       lookahead(string("[")) |> tag(:any)
     ])
-    |> optional(choice([control_block, ignore(string("?")) |> tag(:optional)]))
+    |> optional(ignore(string("?")) |> tag(:optional))
+    |> optional(control_block)
     |> reduce(:finalize_rule)
   )
 

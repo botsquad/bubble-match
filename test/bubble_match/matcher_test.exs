@@ -177,6 +177,13 @@ defmodule BubbleMatch.MatcherTest do
     assert {:match, %{"a" => [_]}} = Matcher.match("[1+?=a]", "a a a")
   end
 
+  test "optional" do
+    assert {:match, %{}} = Matcher.match("a b?", "a b c")
+    assert {:match, %{}} = Matcher.match("a b?", "a c")
+    assert {:match, %{}} = Matcher.match("a b?", "a b")
+    assert {:match, %{}} = Matcher.match("a b?", "a")
+  end
+
   test "[0-N]" do
     assert {:match, %{}} = Matcher.match("hello [0-1] world", "Hello, world!")
     assert {:match, %{}} = Matcher.match("hello [0-1] world", "Hello there world!")

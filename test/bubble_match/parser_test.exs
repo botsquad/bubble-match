@@ -18,6 +18,8 @@ defmodule BubbleMatch.ParserTest do
     "(hello | hi) world [End]",
     "[Start] [1-2] hello",
     "world[1-2]",
+    "a?",
+    "(a | b)?",
     "this is a /regex/",
     "%VERB",
     "😍",
@@ -34,6 +36,7 @@ defmodule BubbleMatch.ParserTest do
   ]
 
   @invalid [
+    "a?[1]",
     "(",
     "() )",
     "word[ent]",

@@ -52,8 +52,11 @@ defmodule BubbleMatch.Matcher do
     {:match, [], ts_match, context}
   end
 
-  defp match_rules(_, [], _ts_match, _context) do
-    :nomatch
+  defp match_rules([{_, _, ctl} | _], [], ts_match, context) do
+    case ctl[:repeat] do
+      {0, _, _} -> {:match, [], ts_match, context}
+      _ -> :nomatch
+    end
   end
 
   defp match_rules([{_, _, ctl} = rule | rest], ts_remaining, ts_match, context) do
