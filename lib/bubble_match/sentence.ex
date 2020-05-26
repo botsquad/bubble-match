@@ -42,7 +42,7 @@ defmodule BubbleMatch.Sentence do
   def naive_tokenize(input) when is_binary(input) do
     tokens = Tokenizer.tokenize(input)
     no_punct = Tokenizer.strip_punct(tokens)
-    %M{text: input, tokenizations: [no_punct, tokens]}
+    %M{text: input, tokenizations: both_if_different(no_punct, tokens)}
   end
 
   @doc """
@@ -59,7 +59,7 @@ defmodule BubbleMatch.Sentence do
     |> Enum.map(fn {text, tokens, entities} ->
       no_punct = tokens |> Enum.reject(&(&1.value.pos == "PUNCT"))
 
-      %M{text: text, tokenizations: [no_punct, tokens]}
+      %M{text: text, tokenizations: both_if_different(no_punct, tokens)}
       |> add_spacy_entities(entities, spacy_json)
     end)
   end
@@ -145,6 +145,9 @@ defmodule BubbleMatch.Sentence do
       %{t | index: index}
     end)
   end
+
+  defp both_if_different(a, a), do: [a]
+  defp both_if_different(a, b), do: [a, b]
 end
 
 defimpl String.Chars, for: BubbleMatch.Sentence do
