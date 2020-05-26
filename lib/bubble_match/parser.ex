@@ -49,7 +49,7 @@ defmodule BubbleMatch.Parser do
     |> unwrap_and_tag(:perm)
 
   defp regex_compile([regex]) do
-    Regex.compile!(regex)
+    Regex.compile!(regex, "u")
   end
 
   regex =
@@ -127,7 +127,8 @@ defmodule BubbleMatch.Parser do
     |> ignore(string("]"))
 
   defp finalize_word([str]) do
-    {:word, String.downcase(str)}
+    word = String.downcase(str) |> Unidekode.to_ascii()
+    {:word, word}
   end
 
   defp finalize_word([a, b]) do

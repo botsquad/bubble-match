@@ -81,8 +81,9 @@ defmodule BubbleMatch.Sentence.Tokenizer do
   end
 
   defp normalize(word) do
-    Regex.replace(~r/[^\w+-]/, word, "")
+    Regex.replace(~r/[^\w+-]/u, word, "")
     |> String.downcase()
+    |> Unidekode.to_ascii()
   end
 
   defparsecp(

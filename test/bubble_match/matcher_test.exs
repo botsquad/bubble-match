@@ -260,6 +260,12 @@ defmodule BubbleMatch.MatcherTest do
     assert :nomatch == Matcher.match("hello world", "hello asdf world")
   end
 
+  test "accents are ignored" do
+    assert {:match, %{}} == Matcher.match("hello world", "héllo wøŕĺḑ")
+
+    assert {:match, %{}} == Matcher.match("héllo", "hellø")
+  end
+
   ###
 
   defp compile(expr) do
