@@ -13,7 +13,7 @@ defmodule BubbleMatch.SentenceTest do
 
     assert [_, [_, _, _]] = hithere.tokenizations
 
-    assert [with_ents, _no_punct, raw_tokens] = mynameis.tokenizations
+    assert [with_ents, raw_tokens] = mynameis.tokenizations
 
     assert ~w(my name is george) == Enum.map(raw_tokens, & &1.value.norm)
     assert ~w(spacy spacy spacy entity)a == Enum.map(with_ents, & &1.type)
