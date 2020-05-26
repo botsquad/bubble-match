@@ -35,11 +35,11 @@ defmodule BubbleMatch.SentenceTest do
   end
 
   @hello_world_json """
-                    {"text": "Hello, world", "ents": [], "sents": [{"start": 0, "end": 12}], "tokens": [{"id": 0, "start": 0, "end": 5, "pos": "INTJ", "tag": "UH", "dep": "ROOT", "head": 0, "string": "Hello", "lemma": "hello", "norm": "hello"}, {"id": 1, "start": 5, "end": 6, "pos": "PUNCT", "tag": ",", "dep": "punct", "head": 2, "string": ", ", "lemma": ",", "norm": ","}, {"id": 2, "start": 7, "end": 12, "pos": "NOUN", "tag": "NN", "dep": "npadvmod", "head": 0, "string": "world", "lemma": "world", "norm": "world"}]}
+                    {"text": "Hello, w\u00f3rld", "ents": [], "sents": [{"start": 0, "end": 12}], "tokens": [{"id": 0, "start": 0, "end": 5, "pos": "INTJ", "tag": "UH", "dep": "ROOT", "head": 0, "string": "Hello", "lemma": "hello", "norm": "hello"}, {"id": 1, "start": 5, "end": 6, "pos": "PUNCT", "tag": ",", "dep": "punct", "head": 2, "string": ", ", "lemma": ",", "norm": ","}, {"id": 2, "start": 7, "end": 12, "pos": "NOUN", "tag": "NN", "dep": "npadvmod", "head": 0, "string": "w\u00f3rld", "lemma": "w\u00f3rld", "norm": "w\u00f3rld"}]}
                     """
                     |> Jason.decode!()
 
-  test "spacy ignore punctuation" do
+  test "spacy ignore punctuation, strip accents" do
     [sent] = Sentence.sentences_from_spacy(@hello_world_json)
 
     assert {:match, _} = BubbleMatch.Matcher.match("hello world", sent)

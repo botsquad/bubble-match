@@ -52,7 +52,7 @@ defmodule BubbleMatch.Token do
   def from_spacy(t) do
     value =
       Map.take(t, ~w(lemma pos norm tag))
-      |> Enum.map(fn {k, v} -> {String.to_atom(k), v} end)
+      |> Enum.map(fn {k, v} -> {String.to_atom(k), Unidekode.to_ascii(v)} end)
       |> Map.new()
 
     %M{
