@@ -1,8 +1,7 @@
 defmodule BubbleMatch.Parser.PropertyTest do
-  @moduletag timeout: :infinity
-
   use ExUnit.Case
   use ExUnitProperties
+  @moduletag timeout: :infinity
 
   alias BubbleMatch.Parser
 
