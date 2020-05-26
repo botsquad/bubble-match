@@ -38,6 +38,7 @@ defmodule BubbleMatch.ParserTest do
   @invalid [
     "a?[1]",
     "(",
+    "asdfxx?[assign]",
     "() )",
     "word[ent]",
     "@fofdsfs+fdsfds",

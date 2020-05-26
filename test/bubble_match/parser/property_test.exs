@@ -5,7 +5,14 @@ defmodule BubbleMatch.Parser.PropertyTest do
   alias BubbleMatch.Parser
 
   setup do
-    Application.put_env(:stream_data, :max_runs, 1000)
+    max_runs =
+      case System.get_env("CI") do
+        nil -> 1000
+        _ -> 10_000
+      end
+
+    Application.put_env(:stream_data, :max_runs, max_runs)
+
     :ok
   end
 

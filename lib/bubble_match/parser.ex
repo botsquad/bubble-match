@@ -199,6 +199,10 @@ defmodule BubbleMatch.Parser do
     raise ParseError, "Cannot combine optional and repeat modifiers"
   end
 
+  defp finalize_rule([{_, _}, {:optional, _}, {:entity, _}]) do
+    raise ParseError, "Cannot combine optional before entity modifiers"
+  end
+
   defp finalize_rule([{type, value}, {:eat, range}]) do
     {type, value, [repeat: range]}
   end
