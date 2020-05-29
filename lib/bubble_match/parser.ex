@@ -20,12 +20,16 @@ defmodule BubbleMatch.Parser do
 
   int = times(utf8_char([?0..?9]), min: 1) |> reduce(:to_int)
 
+  defp finalize_literal([word]) do
+    {:literal, String.downcase(word)}
+  end
+
   literal = fn char ->
     ignore(utf8_char([char]))
     |> repeat(utf8_char([{:not, char}]))
     |> reduce(:to_string)
     |> ignore(utf8_char([char]))
-    |> unwrap_and_tag(:literal)
+    |> reduce(:finalize_literal)
   end
 
   word =
