@@ -28,66 +28,79 @@ defmodule BubbleMatch.MatcherTest do
     assert :nomatch == Matcher.match("was-machine", "wasjes machine!")
   end
 
-  test "literal" do
-    assert {:match, %{}} == Matcher.match("\"world\"", "Hello, world")
-    assert {:match, %{}} == Matcher.match("\"Hello\"", "Hello world")
+  describe "literal" do
+    test "literal" do
+      assert {:match, %{}} == Matcher.match("\"world\"", "Hello, world")
+      assert {:match, %{}} == Matcher.match("\"Hello\"", "Hello world")
 
-    assert :nomatch == Matcher.match("\"World\"", "Hello, world")
-    assert {:match, %{}} == Matcher.match("\"Hello, world\"", "Hello, world")
+      assert :nomatch == Matcher.match("\"wurld\"", "Hello, world")
+    end
 
-    assert {:match, %{}} == Matcher.match("\"San Francisco\"", "I live in San Francisco, dude.")
-    assert :nomatch == Matcher.match("\"San Franci\"", "I live in San Francisco, dude.")
+    test "literal can span multiple tokens" do
+      assert {:match, %{}} == Matcher.match("\"Hello, world\"", "Hello, world")
 
-    assert :nomatch == Matcher.match("\"San Francisco\" yo", "I live in San Francisco, dude.")
+      assert {:match, %{}} == Matcher.match("\"San Francisco\"", "I live in San Francisco, dude.")
+      assert :nomatch == Matcher.match("\"San Franci\"", "I live in San Francisco, dude.")
 
-    assert {:match, %{}} == Matcher.match("\"test sequence\"", "a a a a test sequence,")
+      assert :nomatch == Matcher.match("\"San Francisco\" yo", "I live in San Francisco, dude.")
 
-    assert {:match, _} = Matcher.match("\"Yo\"[2]", "Yo Yo Yo")
+      assert {:match, %{}} == Matcher.match("\"test sequence\"", "a a a a test sequence,")
+
+      assert {:match, _} = Matcher.match("\"Yo\"[2]", "Yo Yo Yo")
+    end
+
+    test "literal is case insensitive" do
+      assert {:match, %{}} == Matcher.match("\"Hello\"", "HELLO world")
+    end
+
+    test "literal single quoted" do
+      assert {:match, %{}} == Matcher.match("'world'", "Hello, world")
+      assert {:match, %{}} == Matcher.match("'Hello'", "Hello world")
+    end
   end
 
-  test "single quoted literal" do
-    assert {:match, %{}} == Matcher.match("'world'", "Hello, world")
-    assert {:match, %{}} == Matcher.match("'Hello'", "Hello world")
+  describe "regex" do
+    test "regex" do
+      assert {:match, %{}} == Matcher.match("/\\d+/", "foo 32432")
+      assert {:match, %{"x" => [%{raw: "123"}]}} = Matcher.match("/\\d+/[=x]", "la la lala 123")
+
+      assert :nomatch == Matcher.match("/[a-z][a-z]+/", "a")
+      assert :nomatch == Matcher.match("/[a-z][a-z]+/", "ASDF")
+    end
+
+    test "regex span whitespace" do
+      assert {:match, %{}} == Matcher.match("/hello world/", "hello world")
+      assert {:match, %{}} == Matcher.match("/hello world/", "hello world lala")
+
+      assert {:match, %{"x" => [a, b]}} =
+               Matcher.match("/hello world/[=x]", "wellhello worldieworld")
+
+      assert "wellhello " == a.raw
+      assert "worldieworld" == b.raw
+
+      assert {:match, %{"value" => _}} =
+               Matcher.match("/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/[=value]", "a@a.nl")
+    end
+
+    test "regex with capturing" do
+      assert {:match, %{"zip" => [t]}} = Matcher.match("/\\d+/[=zip]", "foo 1234 lala")
+      assert "1234 " == t.raw
+    end
   end
 
-  test "regex" do
-    assert {:match, %{}} == Matcher.match("/\\d+/", "foo 32432")
-    assert {:match, %{"x" => [%{raw: "123"}]}} = Matcher.match("/\\d+/[=x]", "la la lala 123")
+  describe "OR group" do
+    test "OR group" do
+      assert {:match, %{}} == Matcher.match("(hello | hi) world", "Hello world!")
+      assert {:match, %{}} == Matcher.match("(hello | hi) (there | world)", "hi there!")
+      assert :nomatch == Matcher.match("(hello | hi) you", "hello me")
+    end
 
-    assert :nomatch == Matcher.match("/[a-z][a-z]+/", "a")
-    assert :nomatch == Matcher.match("/[a-z][a-z]+/", "ASDF")
-  end
-
-  test "regex span whitespace" do
-    assert {:match, %{}} == Matcher.match("/hello world/", "hello world")
-    assert {:match, %{}} == Matcher.match("/hello world/", "hello world lala")
-
-    assert {:match, %{"x" => [a, b]}} =
-             Matcher.match("/hello world/[=x]", "wellhello worldieworld")
-
-    assert "wellhello " == a.raw
-    assert "worldieworld" == b.raw
-
-    assert {:match, %{"value" => _}} =
-             Matcher.match("/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/[=value]", "a@a.nl")
-  end
-
-  test "regex with capturing" do
-    assert {:match, %{"zip" => [t]}} = Matcher.match("/\\d+/[=zip]", "foo 1234 lala")
-    assert "1234 " == t.raw
-  end
-
-  test "OR group" do
-    assert {:match, %{}} == Matcher.match("(hello | hi) world", "Hello world!")
-    assert {:match, %{}} == Matcher.match("(hello | hi) (there | world)", "hi there!")
-    assert :nomatch == Matcher.match("(hello | hi) you", "hello me")
-  end
-
-  test "OR works on outer level without parens" do
-    assert {:match, %{}} == Matcher.match("hi | hello", "Hello world!")
-    assert {:match, %{}} == Matcher.match("hi | hello", "Hi world!")
-    assert {:match, %{}} == Matcher.match("hi|hello", "Hi world!")
-    assert :nomatch == Matcher.match("hi | hello", "world")
+    test "OR works on outer level without parens" do
+      assert {:match, %{}} == Matcher.match("hi | hello", "Hello world!")
+      assert {:match, %{}} == Matcher.match("hi | hello", "Hi world!")
+      assert {:match, %{}} == Matcher.match("hi|hello", "Hi world!")
+      assert :nomatch == Matcher.match("hi | hello", "world")
+    end
   end
 
   test "permutation group" do
