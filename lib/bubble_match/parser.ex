@@ -52,14 +52,20 @@ defmodule BubbleMatch.Parser do
     |> ignore(string(">"))
     |> unwrap_and_tag(:perm)
 
-  defp regex_compile([regex]) do
-    Regex.compile!(regex, "u")
+  defp regex_compile(r) do
+    Regex.compile!(to_string(r), "u")
   end
 
   regex =
-    ignore(string("/"))
-    |> utf8_string([{:not, ?/}], min: 0)
-    |> ignore(string("/"))
+    ignore(ascii_char([?/]))
+    |> repeat(
+      lookahead_not(ascii_char([?/]))
+      |> choice([
+        ~S(\/) |> string() |> replace(?/),
+        utf8_char([])
+      ])
+    )
+    |> ignore(ascii_char([?/]))
     |> reduce(:regex_compile)
     |> unwrap_and_tag(:regex)
 

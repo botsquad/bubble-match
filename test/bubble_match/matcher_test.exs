@@ -68,6 +68,10 @@ defmodule BubbleMatch.MatcherTest do
       assert :nomatch == Matcher.match("/[a-z][a-z]+/", "ASDF")
     end
 
+    test "regex w/ slash" do
+      assert {:match, %{}} == Matcher.match("/\\/quit/", "/quit")
+    end
+
     test "regex span whitespace" do
       assert {:match, %{}} == Matcher.match("/hello world/", "hello world")
       assert {:match, %{}} == Matcher.match("/hello world/", "hello world lala")

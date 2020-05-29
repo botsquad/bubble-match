@@ -20,6 +20,7 @@ defmodule BubbleMatch.ParserTest do
     "world[1-2]",
     "a?",
     "(a | b)?",
+    "/^\\/quit$/",
     "this is a /regex/",
     "%VERB",
     "😍",
