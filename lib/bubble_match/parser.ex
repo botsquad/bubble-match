@@ -53,7 +53,7 @@ defmodule BubbleMatch.Parser do
     |> unwrap_and_tag(:perm)
 
   defp regex_compile(r) do
-    Regex.compile!(to_string(r), "u")
+    Regex.compile!(to_string(r), "iu")
   end
 
   regex =

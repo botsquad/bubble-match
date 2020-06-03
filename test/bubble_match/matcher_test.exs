@@ -65,11 +65,15 @@ defmodule BubbleMatch.MatcherTest do
       assert {:match, %{"x" => [%{raw: "123"}]}} = Matcher.match("/\\d+/[=x]", "la la lala 123")
 
       assert :nomatch == Matcher.match("/[a-z][a-z]+/", "a")
-      assert :nomatch == Matcher.match("/[a-z][a-z]+/", "ASDF")
+      assert :nomatch == Matcher.match("/[a-z][a-z]+/", "A1")
     end
 
     test "regex w/ slash" do
       assert {:match, %{}} == Matcher.match("/\\/quit/", "/quit")
+    end
+
+    test "regex is case insensitive" do
+      assert {:match, %{}} == Matcher.match("/quit/", "i QUIT")
     end
 
     test "regex span whitespace" do
