@@ -12,8 +12,7 @@ defmodule BubbleMatch.Sentence do
 
   """
 
-  @derive Jason.Encoder
-  use BubbleMatch.DslStruct,
+  use BubbleLib.DslStruct,
     text: nil,
     tokenizations: []
 
@@ -153,3 +152,6 @@ end
 defimpl String.Chars, for: BubbleMatch.Sentence do
   def to_string(%BubbleMatch.Sentence{text: text}), do: text
 end
+
+require BubbleLib.DslStruct
+BubbleLib.DslStruct.jason_derive(BubbleMatch.Sentence)

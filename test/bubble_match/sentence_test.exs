@@ -75,7 +75,8 @@ defmodule BubbleMatch.SentenceTest do
 
   test "encoding" do
     [hithere, _] = Sentence.sentences_from_spacy(@spacy_json)
-    assert {:ok, _} = Jason.encode(hithere)
+    assert {:ok, encoded} = Jason.encode(hithere)
+    assert "{\"__struct__\":" <> _ = encoded
   end
 
   test "access; to_string" do

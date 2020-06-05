@@ -34,8 +34,7 @@ defmodule BubbleMatch.Token do
   """
   @type t :: %__MODULE__{}
 
-  @derive Jason.Encoder
-  use BubbleMatch.DslStruct,
+  use BubbleLib.DslStruct,
     raw: nil,
     value: nil,
     start: nil,
@@ -145,3 +144,6 @@ end
 defimpl String.Chars, for: BubbleMatch.Token do
   def to_string(%BubbleMatch.Token{raw: raw}), do: raw
 end
+
+require BubbleLib.DslStruct
+BubbleLib.DslStruct.jason_derive(BubbleMatch.Token)

@@ -40,6 +40,7 @@ defmodule BubbleMatch.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:bubble_lib, "~> 1.0"},
       {:nimble_parsec, "~> 0.5.3"},
       {:inflex, "~> 2.0"},
       {:jason, "~> 1.0"},
