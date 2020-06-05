@@ -94,6 +94,13 @@ defmodule BubbleMatch.MatcherTest do
       assert {:match, %{"zip" => [t]}} = Matcher.match("/\\d+/[=zip]", "foo 1234 lala")
       assert "1234 " == t.raw
     end
+
+    test "named capture groups inside regex" do
+      assert {:match, %{"digits" => [t]}} =
+               Matcher.match("/KL(?<digits>\\d+)/", "Het nummer is KL1234 of zoiets")
+
+      assert "1234" == t.raw
+    end
   end
 
   describe "OR group" do

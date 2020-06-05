@@ -150,13 +150,15 @@ defmodule BubbleMatch.Matcher do
         |> IO.chardata_to_string()
 
       case Regex.scan(re, input_str) do
-        [[capture | _]] ->
+        [[capture | groups]] ->
           [before, _] = String.split(input_str, capture, parts: 2)
 
           start_idx = t.start + String.length(before)
           {_ignore, rest} = Enum.split_with(ts_remaining, &(&1.end < start_idx))
           end_idx = start_idx + String.length(capture)
           {ts_match, ts_remaining} = Enum.split_with(rest, &(&1.start <= end_idx))
+
+          context = opt_add_regex_captures(groups, context, re, input_str)
           {:match, ts_remaining, Enum.reverse(ts_match), context}
 
         [] ->
@@ -291,5 +293,16 @@ defmodule BubbleMatch.Matcher do
       nil -> context
       key -> Map.put(context, key, Enum.reverse(tokens))
     end
+  end
+
+  defp opt_add_regex_captures([], context, _regex, _input) do
+    context
+  end
+
+  defp opt_add_regex_captures(_groups, context, regex, input) do
+    Regex.named_captures(regex, input)
+    |> Enum.reduce(context, fn {k, v}, ctx ->
+      Map.put(ctx, k, [%Token{raw: v}])
+    end)
   end
 end
