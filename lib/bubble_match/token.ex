@@ -43,6 +43,7 @@ defmodule BubbleMatch.Token do
     type: nil,
     index: nil
 
+  alias BubbleMatch.Entity
   alias __MODULE__, as: M
 
   @doc """
@@ -111,10 +112,11 @@ defmodule BubbleMatch.Token do
   def from_spacy_entity(spacy_entity_json, sentence_text) do
     {start, end_} = {spacy_entity_json["start"], spacy_entity_json["end"]}
     raw = String.slice(sentence_text, start, end_ - start)
+    entity = Entity.new("spacy", Inflex.underscore(spacy_entity_json["label"]), raw)
 
     %M{
       type: :entity,
-      value: %{kind: Inflex.underscore(spacy_entity_json["label"]), provider: "spacy", value: raw},
+      value: entity,
       start: start,
       end: end_,
       raw: raw
@@ -127,13 +129,12 @@ defmodule BubbleMatch.Token do
   def from_duckling_entity(duckling_entity) do
     {start, end_} = {duckling_entity["start"], duckling_entity["end"]}
 
+    entity =
+      Entity.new("duckling", Inflex.underscore(duckling_entity["dim"]), duckling_entity["value"])
+
     %M{
       type: :entity,
-      value: %{
-        kind: Inflex.underscore(duckling_entity["dim"]),
-        provider: "duckling",
-        value: duckling_entity["value"]
-      },
+      value: entity,
       start: start,
       end: end_,
       raw: duckling_entity["body"]
