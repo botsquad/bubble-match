@@ -56,35 +56,68 @@ tokenizing the input:
 The match syntax is composed of adjacent and optionally nested,
 rules. Each individual has the following syntax:
 
-- Basic words; only alphanumeric characters and the quote characters
-  - matching is done on both the lowercased, normalized version of the
-    word, and on the lemmatization of the word.
+### Basic words
 
-  - use a dash (`-`) to match on compound nouns: `was-machine` matches
-    all of `wasmachine`, `was-machine` and `was machine`.
+`hello world`
 
-- `"Literal word sequence"`
-  - Matches a literal piece of text, possibly spread out over multiple tokens.
+Basic words; rules consisting of only alphanumeric characters.
 
-- `_` without any range specifier, matches 0-5 of any available token, greedy.
+Matching is done on both the lowercased, normalized version of the
+word, and on the lemmatization of the word.
 
-- Stand-alone range specifier
-  - `[1]` match exactly one token; any token
-  - `[2+]` match 2 or more tokens (greedy)
-  - `[1-3]` match 1 to 3 tokens (greedy)
-  - `[2+?]` match 2 or more tokens (non-greedy)
-  - `[1-3?]` match 1 to 3 tokens (non-greedy)
+Use a dash (`-`) to match on compound nouns: `was-machine` matches
+all of `wasmachine`, `was-machine` and `was machine`.
 
-- Entity tokens: `[email]` matches a token of type `:entity` with
-  value.kind == `email`. Entities are extracted by external means,
-  e.g. by an NLP NER engine like Duckling.
 
-  Entities are automatically captured under a variable with the same
-  name as the entity's kind.
+### Literals
 
-- Regex tokens: `[/regex/]` matches the given regex against the raw text in the token
+`"Literal word sequence"`
 
-- OR / grouping construct
+Matches a literal piece of text, which can span multiple
+tokens. Matching is **case insensitive**.
+
+
+### Ignoring tokens: _
+
+`hello _ world`
+
+The standalone occurence of `_` matches 0-5 of any available token,
+greedy.
+
+
+### Stand-alone range specifiers
+
+- `[1]` match exactly one token; any token
+- `[2+]` match 2 or more tokens (greedy)
+- `[1-3]` match 1 to 3 tokens (greedy)
+- `[2+?]` match 2 or more tokens (non-greedy)
+- `[1-3?]` match 1 to 3 tokens (non-greedy)
+
+
+### Entities
+
+Entity tokens: `[email]` matches a token of type `:entity` with
+value.kind == `email`. Entities are extracted by external means,
+e.g. by an NLP NER engine like Duckling.
+
+Entities are automatically captured under a variable with the same
+name as the entity's kind.
+
+
+### Regular expressions
+
+`/regex/`
+
+Matches the given regex against the sentence. Regexes can span
+multiple tokens, thus you can match on whitespace and other token
+separators. Regular expressions are **case insensitive**.
+
+Regular expression named capture groups are also supported, to capture
+a specific part of a string: `/KL(?<flight_number>\d+)/` matches
+KL12345 and extracts `12345` as the `flight_number` capture.
+
+
+### OR / grouping construct
 
   - `pizza | fries | chicken` - OR-clause on the root level without
     parens, matches either token
@@ -96,25 +129,32 @@ rules. Each individual has the following syntax:
   - `( a )[3+]` matches 3 or more token consisting of `a`
   - `( hi | hello )[=greeting]` matches 1 token and stores it in `greeting`
 
-- Permutation construct
- - `< a b c >` matches any permutation of the sequence `a b c`; `a c b`, or `b a c`, or `c a b`, etc
 
-- Start / end sentence markers
+### Permutation construct
+
+- `< a b c >` matches any permutation of the sequence `a b c`; `a c b`, or `b a c`, or `c a b`, etc
+
+
+### Start / end sentence markers
+
 - `[Start]` Matches the start of a sentence
 - `[End]` Matches the end of a sentence
 
-- Word collections ("concepts")
-  - `@food` matches any token in the `food` collection.
-  - `@food.subcat` matches any token in the given subcategory.
 
-  Concept compilation is done as part of the parse phase; the concepts
-  compiler must must return an `{m, f, a}` triple. In runtime, this
-  MFA is called while matching, and thus, it must be a fast function.
+### Word collections ("concepts")
 
-- Part-of-speech tags (word kinds), e.g.
-  - `%VERB` matches any verb
-  - `%NOUN` matches any noun
-  - Any other POS Spacy tags are valid as well
+- `@food` matches any token in the `food` collection.
+- `@food.subcat` matches any token in the given subcategory.
+
+Concept compilation is done as part of the parse phase; the concepts
+compiler must must return an `{m, f, a}` triple. In runtime, this MFA
+is called while matching, and thus, it must be a fast function.
+
+### Part-of-speech tags (word kinds)
+
+- `%VERB` matches any verb
+- `%NOUN` matches any noun
+- Any other POS Spacy tags are valid as well
 
 
 ### Rule modifiers
@@ -124,7 +164,8 @@ and/or a capture expression.
 
 Entity blocks are automatically captured as the entity kind.
 
-### Sentences
+
+## Sentence tokenization
 
 The expression matching works on a per-sentence basis; the idea is
 that it does not make sense to create expressions that span over
