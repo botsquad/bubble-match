@@ -13,6 +13,12 @@ defmodule BubbleMatch.EntityTest do
     assert "Mariah" == to_string(e)
   end
 
+  test "to_string with custom entity value" do
+    e = Entity.new("custom", "person", %{"value" => 123})
+
+    assert "123" == to_string(e)
+  end
+
   test "json" do
     e = Entity.new("custom", "person", "Mariah")
     assert "{\"__struct__\":" <> _ = Jason.encode!(e)

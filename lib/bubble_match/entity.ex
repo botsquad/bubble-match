@@ -12,7 +12,13 @@ defmodule BubbleMatch.Entity do
 end
 
 defimpl String.Chars, for: BubbleMatch.Entity do
-  def to_string(%BubbleMatch.Entity{value: value}), do: Kernel.to_string(value)
+  def to_string(%BubbleMatch.Entity{value: value}) do
+    case value do
+      %{"value" => v} -> v
+      v -> v
+    end
+    |> Kernel.to_string()
+  end
 end
 
 require BubbleLib.DslStruct
