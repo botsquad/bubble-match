@@ -14,7 +14,7 @@ defmodule BubbleMatch.EntityTest do
   end
 
   test "to_string with custom entity value" do
-    e = Entity.new("custom", "person", %{"value" => 123})
+    e = Entity.new("custom", "person", 123, %{"foo" => 123})
 
     assert "123" == to_string(e)
   end

@@ -128,8 +128,10 @@ defmodule BubbleMatch.Token do
   def from_duckling_entity(duckling_entity) do
     {start, end_} = {duckling_entity["start"], duckling_entity["end"]}
 
-    entity =
-      Entity.new("duckling", Inflex.underscore(duckling_entity["dim"]), duckling_entity["value"])
+    value = duckling_entity["value"]["value"]
+    extra = duckling_entity["value"] |> Map.delete("value")
+
+    entity = Entity.new("duckling", Inflex.underscore(duckling_entity["dim"]), value, extra)
 
     %M{
       type: :entity,

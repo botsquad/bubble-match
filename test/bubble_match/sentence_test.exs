@@ -63,11 +63,14 @@ defmodule BubbleMatch.SentenceTest do
              %{value: "my"},
              %{value: "birthday"},
              %{value: "is"},
-             %{type: :entity, value: %{kind: "time", value: %{"grain" => "day"}}},
+             %{
+               type: :entity,
+               value: %Entity{kind: "time", value: "2020-04" <> _, extra: %{"grain" => "day"}}
+             },
              _comma,
              %{
                type: :entity,
-               value: %{kind: "distance", value: %{"unit" => "mile", "value" => 10}}
+               value: %Entity{kind: "distance", value: 10, extra: %{"unit" => "mile"}}
              },
              _awai
            ] = with_ents
