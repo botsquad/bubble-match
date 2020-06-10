@@ -151,7 +151,7 @@ defmodule BubbleMatch.Matcher do
         |> IO.chardata_to_string()
 
       case Regex.scan(re, input_str) do
-        [[capture | groups]] ->
+        [[capture | groups] | _] ->
           [before, _] = String.split(input_str, capture, parts: 2)
 
           start_idx = t.start + String.length(before)

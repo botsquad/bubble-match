@@ -101,6 +101,11 @@ defmodule BubbleMatch.MatcherTest do
 
       assert "1234" == t.raw
     end
+
+    test "regex edge cases" do
+      bml = "[Start] (hello|hi|yo|hey|howdy) /([a-zA-Z-]+s*){1,1}/[=greet_name] [End]"
+      Matcher.match(bml, "Hi, I am are you I would like to book a table.")
+    end
   end
 
   describe "OR group" do
