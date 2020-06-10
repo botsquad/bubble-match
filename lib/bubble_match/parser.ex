@@ -178,7 +178,7 @@ defmodule BubbleMatch.Parser do
   end
 
   defp finalize_rule([{:underscore, _}]) do
-    {:any, [], [repeat: {0, 5, :greedy}]}
+    {:any, [], [repeat: {0, 5, :nongreedy}]}
   end
 
   defp finalize_rule([{type, value}]) do

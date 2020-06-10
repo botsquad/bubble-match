@@ -194,6 +194,11 @@ defmodule BubbleMatch.MatcherTest do
              )
   end
 
+  test "underscore is not greedy" do
+    assert {:match, %{"d" => [_]}} = Matcher.match("a _ d?[=d] e", "a b c d e")
+    assert {:match, %{"x" => [_, _]}} = Matcher.match("a _ [1-2=x] [End]", "a b c d e")
+  end
+
   test "greedy vs. non-greedy" do
     # greedy is the default
     assert {:match, %{"a" => [_, _, _]}} = Matcher.match("[0-10=a]", "a a a")
