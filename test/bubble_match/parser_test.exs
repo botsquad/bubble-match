@@ -96,7 +96,7 @@ defmodule BubbleMatch.ParserTest do
   end
 
   test "underscore" do
-    assert {:ok, %{ast: [{:any, [], [repeat: {0, 5, :greedy}]}]}} = parse("_")
+    assert {:ok, %{ast: [{:any, [], [repeat: {0, 5, :nongreedy}]}]}} = parse("_")
   end
 
   test "pointies" do
