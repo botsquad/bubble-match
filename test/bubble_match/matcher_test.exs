@@ -125,6 +125,14 @@ defmodule BubbleMatch.MatcherTest do
     assert {:match, %{}} == Matcher.match("< hello (earth | world) >", "hello earth ")
     assert {:match, %{}} == Matcher.match("< hello (earth | world) >", "hello world ")
     assert :nomatch == Matcher.match("< hello (earth | world) >", "earth world ")
+    assert :nomatch == Matcher.match("earth _ hello", "earth world ")
+    assert :nomatch == Matcher.match("[Start] world _ hello ", "world")
+    assert {:match, %{}} == Matcher.match("[Start] world _  ", "world")
+  end
+
+  test "permutation group has implicit underscore between parts of group" do
+    assert {:match, %{}} == Matcher.match("< hello world >", "Hello there world!")
+    assert {:match, %{}} == Matcher.match("< hello world >", "world lala hello!")
   end
 
   test "capturing" do

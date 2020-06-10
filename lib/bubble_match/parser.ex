@@ -14,6 +14,8 @@ defmodule BubbleMatch.Parser do
 
   identifier = utf8_string([?_] ++ Enum.to_list(?A..?Z) ++ Enum.to_list(?a..?z), min: 1)
 
+  @underscore {:any, [], [repeat: {0, 5, :nongreedy}]}
+
   defp to_int(a) do
     :string.to_integer(a) |> elem(0)
   end
@@ -178,7 +180,7 @@ defmodule BubbleMatch.Parser do
   end
 
   defp finalize_rule([{:underscore, _}]) do
-    {:any, [], [repeat: {0, 5, :nongreedy}]}
+    @underscore
   end
 
   defp finalize_rule([{type, value}]) do
@@ -376,7 +378,12 @@ defmodule BubbleMatch.Parser do
   defp expand_permutations(rules) do
     walk_rules(rules, fn
       {:perm, rules, meta} ->
-        {:or, permutations(rules), meta}
+        perms =
+          rules
+          |> permutations()
+          |> Enum.map(fn rs -> Enum.intersperse(rs, @underscore) end)
+
+        {:or, perms, meta}
 
       x ->
         x

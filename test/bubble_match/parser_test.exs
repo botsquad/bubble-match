@@ -99,6 +99,10 @@ defmodule BubbleMatch.ParserTest do
     assert {:ok, %{ast: [{:any, [], [repeat: {0, 5, :greedy}]}]}} = parse("_")
   end
 
+  test "pointies" do
+    assert [{:any, [], _}, {:or, [[_, _, _], [_, _, _]], _}] = Parser.parse!("< a b >").ast
+  end
+
   test "@concept" do
     assert {:ok, %{ast: [_, {:concept, {"intent", "foo"}, []}, _]}} =
              parse("hello @intent.foo name")
