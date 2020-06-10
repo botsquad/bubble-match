@@ -88,4 +88,28 @@ defmodule BubbleMatch.SentenceTest do
     assert "Hi there." == hithere[:text]
     assert "Hi there." == to_string(hithere)
   end
+
+  @time_duckling """
+                   [{"body":"9 p.m.","start":0,"value":{"values":[{"value":"2020-06-10T21:00:00.000+02:00","grain":"hour","type":"value"},{"value":"2020-06-11T21:00:00.000+02:00","grain":"hour","type":"value"},{"value":"2020-06-12T21:00:00.000+02:00","grain":"hour","type":"value"}],"value":"2020-06-10T21:00:00.000+02:00","grain":"hour","type":"value"},"end":6,"dim":"time","latent":false}]
+                 """
+                 |> Jason.decode!()
+
+  @time_spacy """
+              {"text":"9 p.m.","ents":[],"sents":[{"start":0,"end":1},{"start":2,"end":6}],"tokens":[{"id":0,"start":0,"end":1,"pos":"NUM","tag":"CD","dep":"ROOT","head":0,"string":"9 ","lemma":"9","norm":"9"},{"id":1,"start":2,"end":6,"pos":"NOUN","tag":"NN","dep":"ROOT","head":1,"string":"p.m.","lemma":"p.m.","norm":"p.m."}]}
+              """
+              |> Jason.decode!()
+
+  test "overlapping duckling entities" do
+    [a, b] = Sentence.sentences_from_spacy(@time_spacy)
+
+    assert [_] = a.tokenizations
+    a = a |> Sentence.add_duckling_entities(@time_duckling)
+    assert [with_ents, _raw_tokens] = a.tokenizations
+    assert List.first(with_ents).value.kind == "time"
+
+    assert [_] = b.tokenizations
+    b = b |> Sentence.add_duckling_entities(@time_duckling)
+    assert [with_ents, _raw_tokens] = b.tokenizations
+    assert List.first(with_ents).value.kind == "time"
+  end
 end

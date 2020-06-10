@@ -114,7 +114,10 @@ defmodule BubbleMatch.Sentence do
         replace_tokens(tokens, seq)
       end)
 
-    %M{m | tokenizations: [tokenization | m.tokenizations]}
+    case Enum.member?(m.tokenizations, tokenization) do
+      false -> %M{m | tokenizations: [tokenization | m.tokenizations]}
+      true -> m
+    end
   end
 
   defp replace_tokens(token_sequence, replace_tokens) do
@@ -125,15 +128,29 @@ defmodule BubbleMatch.Sentence do
     start_idx = Enum.find_index(token_sequence, &(&1.start == start))
     end_idx = Enum.find_index(token_sequence, &(&1.end == end_))
 
-    if start_idx != nil and end_idx != nil and end_idx >= start_idx do
-      {a, _} = Enum.split(token_sequence, start_idx)
-      {_, b} = Enum.split(token_sequence, end_idx + 1)
+    cond do
+      start_idx != nil and end_idx != nil and end_idx >= start_idx ->
+        {a, _} = Enum.split(token_sequence, start_idx)
+        {_, b} = Enum.split(token_sequence, end_idx + 1)
 
-      (a ++ replace_tokens ++ b)
-      |> reindex()
-    else
-      # raise RuntimeError, "Token not found at start = #{start}, end = #{end_}"
-      token_sequence
+        (a ++ replace_tokens ++ b)
+        |> reindex()
+
+      start_idx != nil and end_idx == nil ->
+        {a, _} = Enum.split(token_sequence, start_idx)
+
+        (a ++ replace_tokens)
+        |> reindex()
+
+      start_idx == nil and end_idx != nil ->
+        {_, b} = Enum.split(token_sequence, end_idx + 1)
+
+        (replace_tokens ++ b)
+        |> reindex()
+
+      true ->
+        # raise RuntimeError, "Token not found at start = #{start}, end = #{end_}"
+        token_sequence
     end
   end
 
