@@ -4,6 +4,7 @@ defmodule BubbleMatch.Parser do
   import NimbleParsec
 
   alias BubbleMatch.ParseError
+  alias BubbleMatch.Token
 
   @ws [9, 10, 11, 12, 13, 32]
   ws = ignore(utf8_string(@ws, min: 1))
@@ -23,7 +24,7 @@ defmodule BubbleMatch.Parser do
   int = times(utf8_char([?0..?9]), min: 1) |> reduce(:to_int)
 
   defp finalize_literal([word]) do
-    {:literal, String.downcase(word)}
+    {:literal, Token.base_form(word)}
   end
 
   literal = fn char ->
@@ -139,13 +140,12 @@ defmodule BubbleMatch.Parser do
     |> ignore(string("]"))
 
   defp finalize_word([str]) do
-    word = String.downcase(str) |> Unidekode.to_ascii()
-    {:word, word}
+    {:word, Token.base_form(str)}
   end
 
   defp finalize_word([a, b]) do
-    a = String.downcase(a)
-    b = String.downcase(b)
+    a = Token.base_form(a)
+    b = Token.base_form(b)
     {:or, [[{:word, a <> b, []}], [{:word, a <> "-" <> b, []}], [{:word, a, []}, {:word, b, []}]]}
   end
 
@@ -400,10 +400,10 @@ defmodule BubbleMatch.Parser do
       rules,
       fn
         {:entity, kind, meta} ->
-          {:entity, kind, Keyword.put(meta, :assign, meta[:assign] || String.downcase(kind))}
+          {:entity, kind, Keyword.put(meta, :assign, meta[:assign] || Token.base_form(kind))}
 
         {:concept, {kind}, meta} ->
-          {:concept, {kind}, Keyword.put(meta, :assign, meta[:assign] || String.downcase(kind))}
+          {:concept, {kind}, Keyword.put(meta, :assign, meta[:assign] || Token.base_form(kind))}
 
         {verb, rules, meta} when is_list(rules) ->
           {verb, Enum.map(rules, &add_implicit_assign/1), meta}

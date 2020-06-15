@@ -141,6 +141,15 @@ defmodule BubbleMatch.Token do
       raw: duckling_entity["body"]
     }
   end
+
+  @doc """
+  Get the base form of the given string; the downcased, ASCII version.
+  """
+  def base_form(str) do
+    str
+    |> String.downcase()
+    |> Unidekode.to_ascii()
+  end
 end
 
 defimpl String.Chars, for: BubbleMatch.Token do

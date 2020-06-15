@@ -53,6 +53,11 @@ defmodule BubbleMatch.MatcherTest do
       assert {:match, %{}} == Matcher.match("\"Hello\"", "HELLO world")
     end
 
+    test "literal is quote char insensitive" do
+      assert {:match, %{}} == Matcher.match("\"Hello\"", "Héllo world")
+      assert {:match, %{}} == Matcher.match("\"Héllo\"", "Hello world")
+    end
+
     test "literal single quoted" do
       assert {:match, %{}} == Matcher.match("'world'", "Hello, world")
       assert {:match, %{}} == Matcher.match("'Hello'", "Hello world")

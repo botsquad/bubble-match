@@ -191,7 +191,7 @@ defmodule BubbleMatch.Matcher do
       {[], ts_remaining, str},
       fn
         t, {matched, remaining, str} ->
-          raw = String.trim_trailing(t.raw) |> String.downcase()
+          raw = String.trim_trailing(t.raw) |> Token.base_form()
 
           if String.starts_with?(str, raw) do
             case String.trim_leading(str, raw) do
