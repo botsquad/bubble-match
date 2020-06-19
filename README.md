@@ -62,11 +62,15 @@ rules. Each individual has the following syntax:
 
 Basic words; rules consisting of only alphanumeric characters.
 
-Matching is done on both the lowercased, normalized version of the
-word, and on the lemmatization of the word.
+Matching is done on both the lowercased, normalized, accents-removed
+version of the word, and on the lemmatization of the word. The *lemma*
+of a word is its base version; e.g. for verbs it is the root form (are
+→ be, went → go); for nouns it is the singular form of the word.
 
-Use a dash (`-`) to match on compound nouns: `was-machine` matches
-all of `wasmachine`, `was-machine` and `was machine`.
+Some languages (german, dutch, …) have compound nouns, that are often
+written both with and without spaces or dashes.  Use a dash (`-`) to
+match on such compound nouns: the rule `was-machine` matches all of
+`wasmachine`, `was-machine` and `was machine`.
 
 
 ### Literals
@@ -74,7 +78,8 @@ all of `wasmachine`, `was-machine` and `was machine`.
 `"Literal word sequence"`
 
 Matches a literal piece of text, which can span multiple
-tokens. Matching is **case insensitive**.
+tokens. Matching is **case insensitive**, and also insensitive to
+the presence of accented characters.
 
 
 ### Ignoring tokens: _
@@ -82,16 +87,20 @@ tokens. Matching is **case insensitive**.
 `hello _ world`
 
 The standalone occurence of `_` matches 0-5 of any available token,
-greedy.
+non-greedy. This can be used in places where you expect a few tokens
+to occur but you don't care about the tokens.
 
 
-### Stand-alone range specifiers
+### Matching a range of tokens
 
 - `[1]` match exactly one token; any token
 - `[2+]` match 2 or more tokens (greedy)
 - `[1-3]` match 1 to 3 tokens (greedy)
 - `[2+?]` match 2 or more tokens (non-greedy)
 - `[1-3?]` match 1 to 3 tokens (non-greedy)
+
+Use this when you know how many tokens you need to match, but it does
+not matter what the contents of the tokens is.
 
 
 ### Entities
@@ -102,6 +111,42 @@ e.g. by an NLP NER engine like Duckling.
 
 Entities are automatically captured under a variable with the same
 name as the entity's kind.
+
+The default list of supported entities is the following:
+
+ - `amount_of_money` (duckling)
+ - `credit_card_number` (duckling)
+ - `date` (spacy)
+ - `distance` (duckling)
+ - `duration` (duckling)
+ - `email` (duckling)
+ - `event` (spacy)
+ - `fac` (spacy)
+ - `gpe` (spacy)
+ - `language` (spacy)
+ - `law` (spacy)
+ - `loc` (spacy)
+ - `money` (spacy)
+ - `norp` (spacy)
+ - `number` (duckling)
+ - `ordinal` (duckling)
+ - `org` (spacy)
+ - `percent` (spacy)
+ - `person` (spacy)
+ - `phone_number` (duckling)
+ - `product` (spacy)
+ - `quantity` (duckling)
+ - `temperature` (duckling)
+ - `time` (duckling)
+ - `url` (duckling)
+ - `volume` (duckling)
+ - `work_of_art` (spacy)
+
+From our experience, Duckling entities work much better than Spacy
+entities, and are preferred for use. Besides being more accurate, the
+Duckling entities also provide more metadata, like valid UTC times
+when a date is recognized.
+
 
 
 ### Regular expressions
@@ -119,6 +164,8 @@ KL12345 and extracts `12345` as the `flight_number` capture.
 
 ### OR / grouping construct
 
+Use parentheses combined with the pipe `|` character to specify an OR clause.
+
   - `pizza | fries | chicken` - OR-clause on the root level without
     parens, matches either token
 
@@ -126,43 +173,86 @@ KL12345 and extracts `12345` as the `flight_number` capture.
     matches one token consisting of first `a`, and then `a`, `b` or
     `c`.
 
-  - `( a )[3+]` matches 3 or more token consisting of `a`
   - `( hi | hello )[=greeting]` matches 1 token and stores it in `greeting`
+
+Parenthesis with | can also be used to capture a sequence of tokens together as one group:
+
+  - `( a )[3+]` matches 3 or more token consisting of `a`
 
 
 ### Permutation construct
 
-- `< a b c >` matches any permutation of the sequence `a b c`; `a c b`, or `b a c`, or `c a b`, etc
+The permutation construct using pointy brackets, `<`, `>` matches the
+given rules in no particular order.
+
+ `< a b c >` matches any permutation of the sequence `a b c`; `a c b`, or `b a c`, or `c a b`, etc
+
+An implicit `_` is inserted between all rules. So the rule `<a b>` can
+also be written as `(a _ b | b _ a)`.
 
 
 ### Start / end sentence markers
 
+To match the beginning of end of sentences, the following constructs can be used:
+
 - `[Start]` Matches the start of a sentence
 - `[End]` Matches the end of a sentence
 
+> The `[Start]` and `[End]` symbols are not always the same as the
+> start and end of the input string, as sometimes the user input is
+> split into multiple sentences, based on the Spacy sentence
+> tokenizer.
 
-### Word collections ("concepts")
-
-- `@food` matches any token in the `food` collection.
-- `@food.subcat` matches any token in the given subcategory.
-
-Concept compilation is done as part of the parse phase; the concepts
-compiler must must return an `{m, f, a}` triple. In runtime, this MFA
-is called while matching, and thus, it must be a fast function.
 
 ### Part-of-speech tags (word kinds)
 
+To be able to disambiguate between word kinds, the `%` construct
+matches on the POS-tag of a token:
+
 - `%VERB` matches any verb
 - `%NOUN` matches any noun
-- Any other POS Spacy tags are valid as well
+
+Any other [POS Spacy tags](https://spacy.io/api/annotation#pos-en) are
+valid as well.
 
 
-### Rule modifiers
+### Optionality modifier
+
+An appended `?` makes the given rule optional (it needs to occur 0 or 1 times).
+
+
+### Repetition modifier
 
 Any rule can have a `[]` block which contains a repetition modifier
 and/or a capture expression.
 
-Entity blocks are automatically captured as the entity kind.
+- `a[1]` match exactly one `a` word
+- `a[2+]` match 2 or more `a`'s (greedy)
+- `a[1-3]` match 1 to 3 `a`'s (greedy)
+- `a[2+?]` match 2 or more `a`'s (non-greedy)
+- `a[1-3?]` match 1 to 3 `a`'s (non-greedy)
+
+
+### Capture modifier
+
+`(my name is _)[=x]` stores the entire token sequence "My name is john"
+
+
+### Punctuation
+
+Punctuation is optional, and can be ignored while creating match
+rules. However, punctuation tokens *are* stored in the tokenized
+version of the input; in fact, multiple *tokenizations* of the input
+are stored for each sentence, one without and one with with the
+punctuation.
+
+The sentence `Hello, world.` is stored both as:
+
+- `Hello` `world`
+- `Hello` `,` `world` `.`
+
+Matching punctuation can be done by including the punctuation into `'`
+literal quotes.
 
 
 ## Sentence tokenization
