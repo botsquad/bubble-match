@@ -99,13 +99,6 @@ defmodule BubbleMatch.Token do
   end
 
   @doc """
-  Test whether a token's raw value matches the given regular expression.
-  """
-  def regex?(%M{} = t, re) do
-    Regex.match?(re, t.raw)
-  end
-
-  @doc """
   Constructs a token from a Spacy entity definition
   """
   def from_spacy_entity(spacy_entity_json, sentence_text) do

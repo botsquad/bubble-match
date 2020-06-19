@@ -142,29 +142,27 @@ defmodule BubbleMatch.Matcher do
   end
 
   defp match_rule({:regex, re, _}, _rls_remaining, [t | _] = ts_remaining, context) do
-    with :nomatch <- boolean_match(&Token.regex?(&1, re), ts_remaining, context) do
-      input_str =
-        case ts_remaining do
-          [%{index: 0} | _] -> Enum.map(ts_remaining, & &1.raw)
-          _ -> [" " | Enum.map(ts_remaining, & &1.raw)]
-        end
-        |> IO.chardata_to_string()
-
-      case Regex.scan(re, input_str) do
-        [[capture | groups] | _] ->
-          [before, _] = String.split(input_str, capture, parts: 2)
-
-          start_idx = t.start + String.length(before)
-          {_ignore, rest} = Enum.split_with(ts_remaining, &(&1.end < start_idx))
-          end_idx = start_idx + String.length(capture)
-          {ts_match, ts_remaining} = Enum.split_with(rest, &(&1.start <= end_idx))
-
-          context = opt_add_regex_captures(groups, context, re, input_str)
-          {:match, ts_remaining, Enum.reverse(ts_match), context}
-
-        [] ->
-          :nomatch
+    input_str =
+      case ts_remaining do
+        [%{index: 0} | _] -> Enum.map(ts_remaining, & &1.raw)
+        _ -> [" " | Enum.map(ts_remaining, & &1.raw)]
       end
+      |> IO.chardata_to_string()
+
+    case Regex.scan(re, input_str) do
+      [[capture | groups] | _] ->
+        [before, _] = String.split(input_str, capture, parts: 2)
+
+        start_idx = t.start + String.length(before)
+        {_ignore, rest} = Enum.split_with(ts_remaining, &(&1.end < start_idx))
+        end_idx = start_idx + String.length(capture)
+        {ts_match, ts_remaining} = Enum.split_with(rest, &(&1.start <= end_idx))
+
+        context = opt_add_regex_captures(groups, context, re, input_str)
+        {:match, ts_remaining, Enum.reverse(ts_match), context}
+
+      [] ->
+        :nomatch
     end
   end
 

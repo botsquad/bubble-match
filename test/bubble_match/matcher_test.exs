@@ -101,6 +101,11 @@ defmodule BubbleMatch.MatcherTest do
     end
 
     test "named capture groups inside regex" do
+      assert {:match, %{"digits" => [t]}} = Matcher.match("/KL(?<digits>\\d+)/", "KL1234")
+      assert "1234" == t.raw
+    end
+
+    test "named capture groups inside regex spanning tokens" do
       assert {:match, %{"digits" => [t]}} =
                Matcher.match("/KL(?<digits>\\d+)/", "Het nummer is KL1234 of zoiets")
 
