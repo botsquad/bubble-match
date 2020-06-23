@@ -40,8 +40,7 @@ defmodule BubbleMatch.Sentence do
 
   def naive_tokenize(input) when is_binary(input) do
     tokens = Tokenizer.tokenize(input)
-    no_punct = Tokenizer.strip_punct(tokens)
-    %M{text: input, tokenizations: both_if_different(no_punct, tokens)}
+    %M{text: input, tokenizations: both_if_different(no_punct(tokens), tokens)}
   end
 
   @doc """
@@ -56,9 +55,7 @@ defmodule BubbleMatch.Sentence do
   def sentences_from_spacy(spacy_json) do
     spacy_sentences_split(spacy_json["sents"], spacy_json, [])
     |> Enum.map(fn {text, tokens, entities} ->
-      no_punct = tokens |> Enum.reject(&(&1.value.pos == "PUNCT"))
-
-      %M{text: text, tokenizations: both_if_different(no_punct, tokens)}
+      %M{text: text, tokenizations: both_if_different(no_punct(tokens), tokens)}
       |> add_spacy_entities(entities, spacy_json)
     end)
   end
@@ -110,14 +107,12 @@ defmodule BubbleMatch.Sentence do
 
     tokenization =
       replace_token_sequences
-      |> Enum.reduce(raw_tokens, fn seq, tokens ->
-        replace_tokens(tokens, seq)
+      |> Enum.reduce(raw_tokens, fn seq, toks ->
+        replace_tokens(toks, seq)
       end)
 
-    case Enum.member?(m.tokenizations, tokenization) do
-      false -> %M{m | tokenizations: [tokenization | m.tokenizations]}
-      true -> m
-    end
+    tokenizations = both_if_different(no_punct(tokenization), tokenization)
+    %M{m | tokenizations: Enum.uniq(tokenizations ++ m.tokenizations)}
   end
 
   defp replace_tokens(token_sequence, replace_tokens) do
@@ -162,8 +157,13 @@ defmodule BubbleMatch.Sentence do
     end)
   end
 
-  defp both_if_different(a, a), do: [a]
-  defp both_if_different(a, b), do: [a, b]
+  defp both_if_different(a, b, rest \\ [])
+  defp both_if_different(a, a, rest), do: [a | rest]
+  defp both_if_different(a, b, rest), do: [a, b | rest]
+
+  defp no_punct(tokens) do
+    tokens |> Enum.reject(&Token.punct?/1)
+  end
 end
 
 defimpl String.Chars, for: BubbleMatch.Sentence do

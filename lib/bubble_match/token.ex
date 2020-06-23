@@ -66,6 +66,17 @@ defmodule BubbleMatch.Token do
   end
 
   @doc """
+  Test whether a token is punctuation
+  """
+  def punct?(%M{type: :punct}) do
+    true
+  end
+
+  def punct?(token) do
+    pos?(token, "PUNCT")
+  end
+
+  @doc """
   Test whether a token mathces the given POS (part-of-speech) tag.
   """
   def pos?(%M{type: :spacy, value: %{pos: tag}}, tag) do

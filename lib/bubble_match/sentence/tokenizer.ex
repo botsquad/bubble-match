@@ -101,8 +101,4 @@ defmodule BubbleMatch.Sentence.Tokenizer do
         end)
     end
   end
-
-  def strip_punct(tokens) do
-    tokens |> Enum.reject(&(&1.type == :punct))
-  end
 end
