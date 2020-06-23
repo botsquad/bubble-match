@@ -36,6 +36,11 @@ defmodule BubbleMatch.MatcherTest do
       assert :nomatch == Matcher.match("\"wurld\"", "Hello, world")
     end
 
+    test "literal w/ emoji" do
+      assert {:match, %{}} == Matcher.match("\"👍\"", "👍")
+      assert {:match, %{}} == Matcher.match("'x 👍'", "x 👍")
+    end
+
     test "literal can span multiple tokens" do
       assert {:match, %{}} == Matcher.match("\"Hello, world\"", "Hello, world")
 

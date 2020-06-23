@@ -42,7 +42,7 @@ defmodule BubbleMatch.Token do
     type: nil,
     index: nil
 
-  alias BubbleMatch.Entity
+  alias BubbleMatch.{Entity, Unidekode}
   alias __MODULE__, as: M
 
   @doc """
@@ -141,7 +141,7 @@ defmodule BubbleMatch.Token do
   def base_form(str) do
     str
     |> String.downcase()
-    |> Unidekode.to_ascii()
+    |> Unidekode.drop_accented()
   end
 end
 
