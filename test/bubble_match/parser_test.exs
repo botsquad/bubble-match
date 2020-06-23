@@ -31,6 +31,7 @@ defmodule BubbleMatch.ParserTest do
     "[phone_number]",
     "a | b c (d | e)",
     "@foo.bar @bla hello (@foo | @bar)",
+    "'harry\\'s burgers'",
     # backward compatibility
     ".*",
     "^abc$"

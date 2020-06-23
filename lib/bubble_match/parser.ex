@@ -28,10 +28,16 @@ defmodule BubbleMatch.Parser do
   end
 
   literal = fn char ->
-    ignore(utf8_char([char]))
-    |> repeat(utf8_char([{:not, char}]))
+    ignore(ascii_char([char]))
+    |> repeat(
+      lookahead_not(ascii_char([char]))
+      |> choice([
+        string(<<?\\, char>>) |> replace(char),
+        utf8_char([])
+      ])
+    )
+    |> ignore(ascii_char([char]))
     |> reduce(:to_string)
-    |> ignore(utf8_char([char]))
     |> reduce(:finalize_literal)
   end
 
