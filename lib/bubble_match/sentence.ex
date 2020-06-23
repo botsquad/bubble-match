@@ -35,13 +35,13 @@ defmodule BubbleMatch.Sentence do
   def naive_tokenize(input)
 
   def naive_tokenize("") do
-    %M{text: "", tokenizations: [[]]}
+    %M{text: "", tokenizations: :digraph.new()}
   end
 
   def naive_tokenize(input) when is_binary(input) do
     tokens = Tokenizer.tokenize(input)
-    no_punct = Tokenizer.strip_punct(tokens)
-    %M{text: input, tokenizations: both_if_different(no_punct, tokens)}
+    graph = build_token_graph(tokens)
+    %M{text: input, tokenizations: graph}
   end
 
   @doc """
@@ -164,6 +164,61 @@ defmodule BubbleMatch.Sentence do
 
   defp both_if_different(a, a), do: [a]
   defp both_if_different(a, b), do: [a, b]
+
+  defp build_token_graph(tokens) do
+    graph = :digraph.new([:acyclic])
+    :digraph.add_vertex(graph, :start)
+    :digraph.add_vertex(graph, :end)
+    build_token_graph(tokens, :start, graph)
+  end
+
+  defp build_token_graph([], _prev, graph) do
+    graph
+  end
+
+  defp build_token_graph([last], prev, graph) do
+    :digraph.add_vertex(graph, last)
+    :digraph.add_vertex(graph, prev)
+    :digraph.add_vertex(graph, :end)
+    :digraph.add_edge(graph, prev, last)
+    :digraph.add_edge(graph, last, :end)
+    graph
+  end
+
+  defp build_token_graph([a, b | rest], prev, graph) do
+    :digraph.add_vertex(graph, a)
+    :digraph.add_vertex(graph, b)
+    :digraph.add_edge(graph, prev, a)
+
+    if Token.punct?(a) do
+      :digraph.add_edge(graph, prev, b)
+    end
+
+    build_token_graph([b | rest], a, graph)
+  end
+
+  def print_dot(sentence) do
+    IO.puts("digraph {")
+
+    IO.puts("  start[label=\"START\"]")
+    IO.puts("  end[label=\"END\"]")
+
+    for v <- :digraph.vertices(sentence.tokenizations), v != :start, v != :end do
+      IO.puts("  #{vertex_id(v)}[label=\"#{v.value}\"]")
+    end
+
+    for e <- :digraph.edges(sentence.tokenizations) do
+      {_, from, to, _} = :digraph.edge(sentence.tokenizations, e)
+
+      IO.puts("  #{vertex_id(from)} -> #{vertex_id(to)}")
+    end
+
+    IO.puts("}")
+  end
+
+  defp vertex_id(:start), do: "start"
+  defp vertex_id(:end), do: "end"
+  defp vertex_id(v), do: "v#{v.index}"
 end
 
 defimpl String.Chars, for: BubbleMatch.Sentence do
