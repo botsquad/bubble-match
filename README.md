@@ -67,10 +67,19 @@ version of the word, and on the lemmatization of the word. The *lemma*
 of a word is its base version; e.g. for verbs it is the root form (are
 → be, went → go); for nouns it is the singular form of the word.
 
-Some languages (german, dutch, …) have compound nouns, that are often
+Some languages (german, dutch, …) have *compound nouns*, that are often
 written both with and without spaces or dashes.  Use a dash (`-`) to
 match on such compound nouns: the rule `was-machine` matches all of
 `wasmachine`, `was-machine` and `was machine`.
+
+The apostrophe sign is also supported as part of a word, for instance
+when matching something like `Martha's cookies`. In this case, the
+apostrophe `'s` part is called the *particle*. For places where the
+apostrophe is a verb, e.g. in `he'll do that`, you can write the verb
+("will") in full in the BML, as Spacy will determine the proper
+verb. In that case, the BML query would be `he will do that`, which
+would also match the version with the apostrophe. Same goes for
+`don't`, `he's`, etc.
 
 
 ### Literals

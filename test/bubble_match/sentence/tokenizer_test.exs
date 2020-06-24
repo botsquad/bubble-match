@@ -10,6 +10,14 @@ defmodule BubbleMatch.Sentence.TokenizerTest do
     assert %{value: ",", raw: ", ", start: 5, end: 6} = comma
   end
 
+  test "tokenize accents" do
+    assert [a, b, c] = Tokenizer.tokenize("Harry's burgers")
+
+    assert %{raw: "Harry"} = a
+    assert %{raw: "'s ", value: "'s"} = b
+    assert %{raw: "burgers"} = c
+  end
+
   test "unicode" do
     assert [_] = Tokenizer.tokenize("📝")
   end

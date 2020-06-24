@@ -38,7 +38,9 @@ defmodule BubbleMatch.Sentence.Tokenizer do
     |> tag(:punct)
 
   text =
-    utf8_string(Enum.map(@ws, &{:not, &1}) ++ Enum.map(@punct, &{:not, &1}), min: 1)
+    optional(string("'"))
+    |> utf8_string(Enum.map(@ws, &{:not, &1}) ++ Enum.map(@punct, &{:not, &1}), min: 1)
+    |> reduce(:to_string)
     |> tag(:word)
 
   defparsec(
@@ -52,10 +54,10 @@ defmodule BubbleMatch.Sentence.Tokenizer do
     {value, raw, type} =
       case inp do
         [{:word, [text]}] ->
-          {normalize(text), text, :naive}
+          {Token.base_form(text), text, :naive}
 
         [ws, {:word, [text]}] ->
-          {normalize(text), text <> ws, :naive}
+          {Token.base_form(text), text <> ws, :naive}
 
         [{:punct, text}] ->
           t = IO.chardata_to_string(text)
@@ -78,11 +80,6 @@ defmodule BubbleMatch.Sentence.Tokenizer do
          type: type
        }
      ], context}
-  end
-
-  defp normalize(word) do
-    Regex.replace(~r/[^\w+-]/u, word, "")
-    |> Token.base_form()
   end
 
   defparsecp(

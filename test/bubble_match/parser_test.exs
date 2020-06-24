@@ -32,6 +32,7 @@ defmodule BubbleMatch.ParserTest do
     "a | b c (d | e)",
     "@foo.bar @bla hello (@foo | @bar)",
     "'harry\\'s burgers'",
+    "harry's _ burgers",
     # backward compatibility
     ".*",
     "^abc$"
@@ -40,6 +41,7 @@ defmodule BubbleMatch.ParserTest do
   @invalid [
     "a?[1]",
     "(",
+    "a's's",
     "asdfxx?[assign]",
     "() )",
     "word[ent]",
@@ -76,6 +78,19 @@ defmodule BubbleMatch.ParserTest do
   test "entity" do
     {:ok, %{ast: ast}} = parse("[person=a]")
     assert [{:entity, "person", [assign: "a"]}] = ast
+  end
+
+  test "quote in word" do
+    {:ok, %{ast: ast}} = parse("harry's")
+
+    assert ast == [
+             {:or,
+              [
+                [{:word, "harrys", []}],
+                [{:word, "harry's", []}],
+                [{:word, "harry", []}, {:word, "'s", []}]
+              ], []}
+           ]
   end
 
   test "entities get implicit variable capture" do

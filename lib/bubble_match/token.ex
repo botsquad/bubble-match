@@ -151,8 +151,11 @@ defmodule BubbleMatch.Token do
   """
   def base_form(str) do
     str
+    |> String.trim()
     |> String.downcase()
     |> Unidekode.drop_accented()
+    |> String.replace("’", "'")
+    |> String.replace("ʼ", "'")
   end
 end
 

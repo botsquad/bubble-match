@@ -12,6 +12,7 @@ defmodule BubbleMatch.Parser do
   special_chars = '`~!@#$%^&*()_+=-{}|\\][\';":?><,./' ++ @ws
 
   string = utf8_string(Enum.map(special_chars, &{:not, &1}), min: 1)
+  char = utf8_char(Enum.map(special_chars, &{:not, &1}))
 
   identifier = utf8_string([?_] ++ Enum.to_list(?A..?Z) ++ Enum.to_list(?a..?z), min: 1)
 
@@ -43,7 +44,13 @@ defmodule BubbleMatch.Parser do
 
   word =
     string
-    |> optional(ignore(string("-")) |> concat(string))
+    |> optional(
+      choice([
+        string("-") |> replace(:dash),
+        string("'") |> replace(:quote)
+      ])
+      |> concat(string)
+    )
     |> reduce(:finalize_word)
 
   or_group =
@@ -149,10 +156,28 @@ defmodule BubbleMatch.Parser do
     {:word, Token.base_form(str)}
   end
 
-  defp finalize_word([a, b]) do
+  # harry's -> harrys | harry's | harry 's
+  defp finalize_word([a, :quote, b]) do
+    a = Token.base_form(a)
+    b = Token.base_form(b)
+
+    {:or,
+     [
+       [{:word, a <> b, []}],
+       [{:word, a <> "'" <> b, []}],
+       [{:word, a, []}, {:word, "'" <> b, []}]
+     ]}
+  end
+
+  # was-machine -> wasmachine | was-machine | was machine
+  defp finalize_word([a, :dash, b]) do
     a = Token.base_form(a)
     b = Token.base_form(b)
     {:or, [[{:word, a <> b, []}], [{:word, a <> "-" <> b, []}], [{:word, a, []}, {:word, b, []}]]}
+  end
+
+  defp finalize_word(_) do
+    raise ParseError, "Invalid word"
   end
 
   defp finalize_rule([a, b, {:assign, v}]) do
