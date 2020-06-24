@@ -12,7 +12,6 @@ defmodule BubbleMatch.Parser do
   special_chars = '`~!@#$%^&*()_+=-{}|\\][\';":?><,./' ++ @ws
 
   string = utf8_string(Enum.map(special_chars, &{:not, &1}), min: 1)
-  char = utf8_char(Enum.map(special_chars, &{:not, &1}))
 
   identifier = utf8_string([?_] ++ Enum.to_list(?A..?Z) ++ Enum.to_list(?a..?z), min: 1)
 
