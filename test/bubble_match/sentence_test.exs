@@ -4,7 +4,7 @@ defmodule BubbleMatch.SentenceTest do
   alias BubbleMatch.{Entity, Sentence}
 
   test "tokenize" do
-    sentence = Sentence.naive_tokenize("My birthday, is the day after tomorrow, 10 miles away")
+    sentence = Sentence.naive_tokenize("My birthday,,, is the day after tomorrow, 10 miles away")
     Sentence.print_dot(sentence)
   end
 

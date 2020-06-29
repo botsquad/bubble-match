@@ -190,11 +190,38 @@ defmodule BubbleMatch.Sentence do
     :digraph.add_vertex(graph, b)
     :digraph.add_edge(graph, prev, a)
 
-    if Token.punct?(a) do
-      :digraph.add_edge(graph, prev, b)
-    end
+    case Token.punct?(a) do
+      true ->
+        case eat_punct([b | rest], a, graph) do
+          [nonpunct | rest] ->
+            :digraph.add_vertex(graph, nonpunct)
+            :digraph.add_edge(graph, prev, nonpunct)
+            build_token_graph(rest, nonpunct, graph)
 
-    build_token_graph([b | rest], a, graph)
+          [] ->
+            graph
+        end
+
+      false ->
+        build_token_graph([b | rest], a, graph)
+    end
+  end
+
+  defp eat_punct([], _prev, _graph) do
+    []
+  end
+
+  defp eat_punct([t | rest], prev, graph) do
+    :digraph.add_vertex(graph, t)
+    :digraph.add_edge(graph, prev, t)
+
+    case Token.punct?(t) do
+      true ->
+        eat_punct(rest, t, graph)
+
+      false ->
+        [t | rest]
+    end
   end
 
   def print_dot(sentence) do
