@@ -160,6 +160,9 @@ defmodule BubbleMatch.Token do
 end
 
 defimpl String.Chars, for: BubbleMatch.Token do
+  def to_string(%BubbleMatch.Token{type: :entity, raw: raw, value: value}),
+    do: "#{raw} [#{value.kind}]"
+
   def to_string(%BubbleMatch.Token{raw: raw}), do: raw
 end
 
