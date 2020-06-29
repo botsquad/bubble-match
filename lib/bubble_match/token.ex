@@ -52,7 +52,7 @@ defmodule BubbleMatch.Token do
   def from_spacy(t) do
     value =
       Map.take(t, ~w(lemma pos norm tag))
-      |> Enum.map(fn {k, v} -> {String.to_atom(k), Unidekode.to_ascii(v)} end)
+      |> Enum.map(fn {k, v} -> {k, Unidekode.to_ascii(v)} end)
       |> Map.new()
 
     %M{
@@ -79,11 +79,11 @@ defmodule BubbleMatch.Token do
   @doc """
   Test whether a token mathces the given POS (part-of-speech) tag.
   """
-  def pos?(%M{type: :spacy, value: %{pos: tag}}, tag) do
+  def pos?(%M{type: :spacy, value: %{"pos" => tag}}, tag) do
     true
   end
 
-  def pos?(%M{type: :spacy, value: %{tag: tag}}, tag) do
+  def pos?(%M{type: :spacy, value: %{"tag" => tag}}, tag) do
     true
   end
 
@@ -95,7 +95,7 @@ defmodule BubbleMatch.Token do
   Test whether a token matches the given (optionally normalized) word.
   """
   def word?(%M{type: :spacy} = t, word) do
-    t.value.norm == word || t.value.lemma == word
+    t.value["norm"] == word || t.value["lemma"] == word
   end
 
   def word?(%M{} = t, word) do
