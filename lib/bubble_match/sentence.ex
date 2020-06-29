@@ -56,9 +56,7 @@ defmodule BubbleMatch.Sentence do
   def sentences_from_spacy(spacy_json) do
     spacy_sentences_split(spacy_json["sents"], spacy_json, [])
     |> Enum.map(fn {text, tokens, entities} ->
-      no_punct = tokens |> Enum.reject(&(&1.value.pos == "PUNCT"))
-
-      %M{text: text, tokenizations: both_if_different(no_punct, tokens)}
+      %M{text: text, tokenizations: both_if_different(no_punct(tokens), tokens)}
       |> add_spacy_entities(entities, spacy_json)
     end)
   end
@@ -110,14 +108,12 @@ defmodule BubbleMatch.Sentence do
 
     tokenization =
       replace_token_sequences
-      |> Enum.reduce(raw_tokens, fn seq, tokens ->
-        replace_tokens(tokens, seq)
+      |> Enum.reduce(raw_tokens, fn seq, toks ->
+        replace_tokens(toks, seq)
       end)
 
-    case Enum.member?(m.tokenizations, tokenization) do
-      false -> %M{m | tokenizations: [tokenization | m.tokenizations]}
-      true -> m
-    end
+    tokenizations = both_if_different(no_punct(tokenization), tokenization)
+    %M{m | tokenizations: Enum.uniq(tokenizations ++ m.tokenizations)}
   end
 
   defp replace_tokens(token_sequence, replace_tokens) do
@@ -162,9 +158,6 @@ defmodule BubbleMatch.Sentence do
     end)
   end
 
-  defp both_if_different(a, a), do: [a]
-  defp both_if_different(a, b), do: [a, b]
-
   defp build_token_graph(tokens) do
     graph = :digraph.new([:acyclic])
     :digraph.add_vertex(graph, :start)
@@ -182,6 +175,11 @@ defmodule BubbleMatch.Sentence do
     :digraph.add_vertex(graph, :end)
     :digraph.add_edge(graph, prev, last)
     :digraph.add_edge(graph, last, :end)
+
+    if Token.punct?(last) do
+      :digraph.add_edge(graph, prev, :end)
+    end
+
     graph
   end
 
@@ -246,6 +244,13 @@ defmodule BubbleMatch.Sentence do
   defp vertex_id(:start), do: "start"
   defp vertex_id(:end), do: "end"
   defp vertex_id(v), do: "v#{v.index}"
+  defp both_if_different(a, b, rest \\ [])
+  defp both_if_different(a, a, rest), do: [a | rest]
+  defp both_if_different(a, b, rest), do: [a, b | rest]
+
+  defp no_punct(tokens) do
+    tokens |> Enum.reject(&Token.punct?/1)
+  end
 end
 
 defimpl String.Chars, for: BubbleMatch.Sentence do

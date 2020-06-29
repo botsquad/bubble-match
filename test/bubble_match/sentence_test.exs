@@ -20,7 +20,7 @@ defmodule BubbleMatch.SentenceTest do
 
     assert [with_ents, raw_tokens] = mynameis.tokenizations
 
-    assert ~w(my name is george) == Enum.map(raw_tokens, & &1.value.norm)
+    assert ~w(my name is george) == Enum.map(raw_tokens, & &1.value["norm"])
     assert ~w(spacy spacy spacy entity)a == Enum.map(with_ents, & &1.type)
 
     assert [_, _, _, %{value: %Entity{value: "George"}}] = with_ents
@@ -62,7 +62,7 @@ defmodule BubbleMatch.SentenceTest do
       Sentence.naive_tokenize("My birthday is the day after tomorrow, 10 miles away")
       |> Sentence.add_duckling_entities(@duckling_json)
 
-    assert [with_ents, _without_punct, _raw_tokens] = sentence.tokenizations
+    assert [with_ents, with_ents_punct | _] = sentence.tokenizations
 
     assert [
              %{value: "my"},
@@ -72,13 +72,28 @@ defmodule BubbleMatch.SentenceTest do
                type: :entity,
                value: %Entity{kind: "time", value: "2020-04" <> _, extra: %{"grain" => "day"}}
              },
-             _comma,
              %{
                type: :entity,
                value: %Entity{kind: "distance", value: 10, extra: %{"unit" => "mile"}}
              },
              _awai
            ] = with_ents
+
+    assert [
+             %{value: "my"},
+             %{value: "birthday"},
+             %{value: "is"},
+             %{
+               type: :entity,
+               value: %Entity{kind: "time", value: "2020-04" <> _, extra: %{"grain" => "day"}}
+             },
+             %{value: ","},
+             %{
+               type: :entity,
+               value: %Entity{kind: "distance", value: 10, extra: %{"unit" => "mile"}}
+             },
+             _awai
+           ] = with_ents_punct
   end
 
   test "encoding" do

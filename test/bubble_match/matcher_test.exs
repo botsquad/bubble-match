@@ -7,25 +7,37 @@ defmodule BubbleMatch.MatcherTest do
     assert :nomatch == Matcher.match("", "Hello world!")
   end
 
-  test "matcher" do
-    assert {:match, %{}} == Matcher.match("hello", "Hello world!")
-    assert {:match, %{}} == Matcher.match("world", "Hello world!")
-    assert {:match, %{}} == Matcher.match("hello world", "Hello world!")
-    assert {:match, %{}} == Matcher.match("HELLO World", "Hello world!")
-    assert :nomatch == Matcher.match("world hello", "Hello world!")
-    assert :nomatch == Matcher.match("hello world", "Hello there world!")
-    assert :nomatch == Matcher.match("hello world", "Hello there cruel world!")
-  end
+  describe "words" do
+    test "basic words" do
+      assert {:match, %{}} == Matcher.match("hello", "Hello world!")
+      assert {:match, %{}} == Matcher.match("world", "Hello world!")
+      assert {:match, %{}} == Matcher.match("hello world", "Hello world!")
+      assert {:match, %{}} == Matcher.match("HELLO World", "Hello world!")
+      assert :nomatch == Matcher.match("world hello", "Hello world!")
+      assert :nomatch == Matcher.match("hello world", "Hello there world!")
+      assert :nomatch == Matcher.match("hello world", "Hello there cruel world!")
+    end
 
-  test "matcher w/ emoji" do
-    assert {:match, %{}} == Matcher.match("😍", "hi 😍")
-  end
+    test "words w/ emoji" do
+      assert {:match, %{}} == Matcher.match("😍", "hi 😍")
+    end
 
-  test "compound words" do
-    assert {:match, %{}} == Matcher.match("was-machine", "wasmachine!")
-    assert {:match, %{}} == Matcher.match("was-machine", "was machine!")
-    assert {:match, %{}} == Matcher.match("was-machine", "was-machine!")
-    assert :nomatch == Matcher.match("was-machine", "wasjes machine!")
+    test "compound words" do
+      assert {:match, %{}} == Matcher.match("was-machine", "wasmachine!")
+      assert {:match, %{}} == Matcher.match("was-machine", "was machine!")
+      assert {:match, %{}} == Matcher.match("was-machine", "was-machine!")
+      assert :nomatch == Matcher.match("was-machine", "wasjes machine!")
+    end
+
+    test "words with apostrophe" do
+      assert {:match, %{}} == Matcher.match("harry's", "harry's")
+      assert {:match, %{}} == Matcher.match("harry's", "harry 's")
+      assert {:match, %{}} == Matcher.match("harry's", "harrys")
+      assert :nomatch == Matcher.match("harry's", "harry s")
+
+      # strange apostrophe's
+      assert {:match, %{}} == Matcher.match("harry's", "harry’s")
+    end
   end
 
   describe "literal" do
@@ -58,9 +70,13 @@ defmodule BubbleMatch.MatcherTest do
       assert {:match, %{}} == Matcher.match("\"Hello\"", "HELLO world")
     end
 
-    test "literal is quote char insensitive" do
+    test "literal is accented char insensitive" do
       assert {:match, %{}} == Matcher.match("\"Hello\"", "Héllo world")
       assert {:match, %{}} == Matcher.match("\"Héllo\"", "Hello world")
+    end
+
+    test "literal escaped quotes" do
+      assert {:match, %{}} == Matcher.match("\"hi\\\"there\"", "hi\"there")
     end
 
     test "literal single quoted" do
