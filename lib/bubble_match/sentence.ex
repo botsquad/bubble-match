@@ -35,7 +35,7 @@ defmodule BubbleMatch.Sentence do
   def naive_tokenize(input)
 
   def naive_tokenize("") do
-    %M{text: "", tokenizations: :digraph.new()}
+    %M{text: "", tokenizations: new_graph()}
   end
 
   def naive_tokenize(input) when is_binary(input) do
@@ -62,15 +62,27 @@ defmodule BubbleMatch.Sentence do
       |> Enum.map(&Token.from_spacy/1)
 
     graph = new_graph()
+    sents = spacy_json["sents"]
 
-    for %{"start" => start, "end" => end_} <- spacy_json["sents"] do
-      ts = Enum.filter(tokens, &(&1.start >= start && &1.end <= end_))
-      build_token_graph(graph, ts)
-    end
+    # add all sentences
+    graph =
+      Enum.reduce(sents, graph, fn %{"start" => start, "end" => end_}, graph ->
+        ts = Enum.filter(tokens, &(&1.start >= start && &1.end <= end_))
+        build_token_graph(graph, ts)
+      end)
+
+    [_ | pairs] = Enum.zip([nil | sents], sents)
+
+    # add edge between sentences
+    graph =
+      Enum.reduce(pairs, graph, fn {%{"end" => end_}, %{"start" => start}}, graph ->
+        {t_start, t_end} = find_start_end(graph, start, end_)
+        Graph.add_edge(graph, t_start, t_end)
+      end)
 
     # add entities
     ents = Enum.map(spacy_json["ents"], &Token.from_spacy_entity(&1, text))
-    add_entities(graph, ents)
+    graph = add_entities(graph, ents)
     %M{text: text, tokenizations: graph}
   end
 
@@ -89,70 +101,107 @@ defmodule BubbleMatch.Sentence do
   def add_duckling_entities(%M{} = sentence, entities) do
     ents = Enum.map(entities, &Token.from_duckling_entity(&1))
 
-    add_entities(sentence.tokenizations, ents)
-    sentence
+    graph = add_entities(sentence.tokenizations, ents)
+    %M{sentence | tokenizations: graph}
+  end
+
+  def skip_punct(%M{tokenizations: graph} = m) do
+    graph =
+      Enum.reduce(Graph.vertices(graph), graph, fn v, graph ->
+        connect_punct(graph, v, nil)
+      end)
+
+    %{m | tokenizations: graph}
   end
 
   ###
 
+  defp connect_punct(graph, v, first) do
+    case out_vertices(graph, v) |> Enum.split_with(&Token.punct?/1) do
+      {[], []} ->
+        graph
+
+      {p, []} ->
+        Enum.reduce(p, graph, fn v2, graph ->
+          connect_punct(graph, v2, first || v)
+        end)
+
+      {_, vs} ->
+        if first && not Token.punct?(first) do
+          Enum.reduce(vs, graph, fn v2, graph ->
+            Graph.add_edge(graph, first, v2)
+          end)
+        else
+          graph
+        end
+    end
+  end
+
   defp new_graph() do
-    graph = :digraph.new([:acyclic])
-    :digraph.add_vertex(graph, :start)
-    :digraph.add_vertex(graph, :end)
-    graph
+    Graph.new(type: :directed)
+    |> Graph.add_vertices([:start, :end])
   end
 
   defp build_token_graph(graph, tokens) do
-    build_token_graph(tokens, :start, graph)
+    build_token_graph(graph, tokens, :start)
   end
 
-  defp build_token_graph([], _prev, graph) do
+  defp build_token_graph(graph, [], _prev) do
     graph
   end
 
-  defp build_token_graph([last], prev, graph) do
-    :digraph.add_vertex(graph, last)
-    :digraph.add_vertex(graph, prev)
-    :digraph.add_vertex(graph, :end)
-    :digraph.add_edge(graph, prev, last)
-    :digraph.add_edge(graph, last, :end)
+  defp build_token_graph(graph, [last], prev) do
     graph
+    |> Graph.add_vertices([last, prev, :end])
+    |> Graph.add_edge(prev, last)
+    |> Graph.add_edge(last, :end)
   end
 
-  defp build_token_graph([a, b | rest], prev, graph) do
-    :digraph.add_vertex(graph, a)
-    :digraph.add_vertex(graph, b)
-    :digraph.add_edge(graph, prev, a)
-    build_token_graph([b | rest], a, graph)
+  defp build_token_graph(graph, [a, b | rest], prev) do
+    graph
+    |> Graph.add_vertices([a, b])
+    |> Graph.add_edge(prev, a)
+    |> build_token_graph([b | rest], a)
+  end
+
+  defp find_start_end(graph, start, end_) do
+    t_start =
+      Graph.vertices(graph)
+      |> Enum.find(&(is_map(&1) && &1.end == start - 1))
+
+    t_end =
+      Graph.vertices(graph)
+      |> Enum.find(&(is_map(&1) && (&1.start == end_ + 1 || &1.start == end_)))
+
+    {t_start, t_end}
   end
 
   defp add_entities(graph, ents) do
-    for %{start: start, end: end_} = ent <- ents do
-      ent = Map.put(ent, :index, :erlang.system_time())
-      :digraph.add_vertex(graph, ent)
+    Enum.reduce(ents, graph, fn %{start: start, end: end_} = ent, graph ->
+      {t_start, t_end} = find_start_end(graph, start, end_)
+      graph = Graph.add_vertex(graph, ent)
 
-      t_start =
-        :digraph.vertices(graph)
-        |> Enum.find(&(is_map(&1) && &1.end == start - 1))
+      graph =
+        if t_start do
+          Graph.add_edge(graph, t_start, ent)
+        else
+          Graph.add_edge(graph, :start, ent)
+        end
 
-      if t_start do
-        :digraph.add_edge(graph, t_start, ent)
-      else
-        :digraph.add_edge(graph, :start, ent)
-      end
+      graph =
+        if t_end do
+          Graph.add_edge(graph, ent, t_end)
+        else
+          Graph.add_edge(graph, ent, :end)
+        end
 
-      t_end =
-        :digraph.vertices(graph)
-        |> Enum.find(&(is_map(&1) && (&1.start == end_ + 1 || &1.start == end_)))
+      graph
+    end)
+  end
 
-      if t_end do
-        :digraph.add_edge(graph, ent, t_end)
-      else
-        :digraph.add_edge(graph, ent, :end)
-      end
-    end
-
-    graph
+  def out_vertices(graph, vertex) do
+    Graph.out_edges(graph, vertex)
+    |> Enum.map(fn e -> e.v2 end)
   end
 
   def make_dot(sentence) do
@@ -160,13 +209,11 @@ defmodule BubbleMatch.Sentence do
       "digraph {",
       "  start[label=\"START\"]",
       "  end[label=\"END\"]",
-      for v <- :digraph.vertices(sentence.tokenizations), v != :start, v != :end do
+      for v <- Graph.vertices(sentence.tokenizations), v != :start, v != :end do
         "  #{vertex_id(v)}[label=\"#{v}\"]"
       end,
-      for e <- :digraph.edges(sentence.tokenizations) do
-        {_, from, to, _} = :digraph.edge(sentence.tokenizations, e)
-
-        "  #{vertex_id(from)} -> #{vertex_id(to)}"
+      for e <- Graph.edges(sentence.tokenizations) do
+        "  #{vertex_id(e.v1)} -> #{vertex_id(e.v2)}"
       end,
       "}"
     ]

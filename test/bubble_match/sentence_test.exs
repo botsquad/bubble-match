@@ -4,9 +4,13 @@ defmodule BubbleMatch.SentenceTest do
   alias BubbleMatch.{Entity, Sentence}
 
   test "tokenize" do
-    sentence = Sentence.naive_tokenize("My birthday, is the day after tomorrow, 10 miles away")
+    sentence =
+      Sentence.naive_tokenize("My birthday, is the day after tomorrow, 10 miles away")
+      |> Sentence.skip_punct()
 
     graph = Sentence.make_dot(sentence)
+    # IO.puts(graph)
+    #    view_graph(sentence)
     assert String.contains?(graph, "start -> v0")
     assert String.contains?(graph, "v0 -> v1")
     assert String.contains?(graph, "v1 -> v2")
@@ -69,6 +73,7 @@ defmodule BubbleMatch.SentenceTest do
     sentence =
       Sentence.naive_tokenize("My birthday is the day after tomorrow, 10 miles away")
       |> Sentence.add_duckling_entities(@duckling_json)
+      |> Sentence.skip_punct()
 
     view_graph(sentence)
 
@@ -125,22 +130,15 @@ defmodule BubbleMatch.SentenceTest do
                  |> Jason.decode!()
 
   @time_spacy """
-              {"text":"9 p.m.","ents":[],"sents":[{"start":0,"end":1},{"start":2,"end":6}],"tokens":[{"id":0,"start":0,"end":1,"pos":"NUM","tag":"CD","dep":"ROOT","head":0,"string":"9 ","lemma":"9","norm":"9"},{"id":1,"start":2,"end":6,"pos":"NOUN","tag":"NN","dep":"ROOT","head":1,"string":"p.m.","lemma":"p.m.","norm":"p.m."}]}
+              {"text":"9 p.m.","ents":[],"sents":[{"start":0,"end":9}],"tokens":[{"id":0,"start":0,"end":1,"pos":"NUM","tag":"CD","dep":"ROOT","head":0,"string":"9 ","lemma":"9","norm":"9"},{"id":1,"start":2,"end":6,"pos":"NOUN","tag":"NN","dep":"ROOT","head":1,"string":"p.m.","lemma":"p.m.","norm":"p.m."}]}
               """
               |> Jason.decode!()
 
   test "overlapping duckling entities" do
-    [a, b] = Sentence.sentences_from_spacy(@time_spacy)
-
-    assert [_] = a.tokenizations
-    a = a |> Sentence.add_duckling_entities(@time_duckling)
-    assert [with_ents, _raw_tokens] = a.tokenizations
-    assert List.first(with_ents).value.kind == "time"
-
-    assert [_] = b.tokenizations
-    b = b |> Sentence.add_duckling_entities(@time_duckling)
-    assert [with_ents, _raw_tokens] = b.tokenizations
-    assert List.first(with_ents).value.kind == "time"
+    Sentence.from_spacy(@time_spacy)
+    |> Sentence.add_duckling_entities(@time_duckling)
+    |> Sentence.skip_punct()
+    |> view_graph()
   end
 
   defp view_graph(sentence) do
