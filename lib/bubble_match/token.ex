@@ -73,7 +73,7 @@ defmodule BubbleMatch.Token do
   end
 
   def punct?(token) do
-    pos?(token, "PUNCT")
+    pos?(token, "PUNCT") || pos?(token, "SYM")
   end
 
   @doc """
