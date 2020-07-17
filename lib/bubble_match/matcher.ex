@@ -118,7 +118,7 @@ defmodule BubbleMatch.Matcher do
           context
         )
 
-      {:match, _ts_remaining, inner, context} ->
+      {:match, _ts_remaining, _inner, context} ->
         {:match, ts_remaining_split, Enum.reverse(eat_tokens), context}
     end
   end
