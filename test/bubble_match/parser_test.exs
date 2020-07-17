@@ -119,44 +119,53 @@ defmodule BubbleMatch.ParserTest do
     assert [{:any, [], _}, {:or, [[_, _, _], [_, _, _]], _}] = Parser.parse!("< a b >").ast
   end
 
-  test "@concept" do
-    assert {:ok, %{ast: [_, {:concept, {"intent", "foo"}, []}, _]}} =
-             parse("hello @intent.foo name")
+  test "wildcard repeat at beginning" do
+    assert [
+             {:any, [], [repeat: {1, :infinity, :greedy}]},
+             {:word, "x", []}
+           ] == Parser.parse!("[1+] x").ast
   end
 
-  test "@concept compiler" do
-    compiler = fn {"intent", "foo"} ->
-      send(self(), {:compiled, :x})
-      {:ok, {:m, :f, :a}}
+  describe "concepts" do
+    test "@concept" do
+      assert {:ok, %{ast: [_, {:concept, {"intent", "foo"}, []}, _]}} =
+               parse("hello @intent.foo name")
     end
 
-    assert {:ok, %{ast: [_, {:concept, {:m, :f, :a}, []}]}} =
-             Parser.parse("@intent.foo", concepts_compiler: compiler)
+    test "@concept compiler" do
+      compiler = fn {"intent", "foo"} ->
+        send(self(), {:compiled, :x})
+        {:ok, {:m, :f, :a}}
+      end
 
-    assert_receive({:compiled, _})
-  end
+      assert {:ok, %{ast: [_, {:concept, {:m, :f, :a}, []}]}} =
+               Parser.parse("@intent.foo", concepts_compiler: compiler)
 
-  test "@concept compiler can return expr" do
-    compiler = fn {"intent"} ->
-      send(self(), {:compiled, :x})
-      Parser.parse("hello _ world")
+      assert_receive({:compiled, _})
     end
 
-    assert {:ok, %{ast: [_, {:concept, %BubbleMatch{}, [assign: "intent"]}]}} =
-             Parser.parse("@intent", concepts_compiler: compiler)
+    test "@concept compiler can return expr" do
+      compiler = fn {"intent"} ->
+        send(self(), {:compiled, :x})
+        Parser.parse("hello _ world")
+      end
 
-    assert_receive({:compiled, _})
-  end
+      assert {:ok, %{ast: [_, {:concept, %BubbleMatch{}, [assign: "intent"]}]}} =
+               Parser.parse("@intent", concepts_compiler: compiler)
 
-  test "@concept compiler error case" do
-    assert {:error, _} = Parser.parse("@foo")
-
-    compiler = fn _ ->
-      nil
+      assert_receive({:compiled, _})
     end
 
-    assert {:error, "concepts_compiler " <> _} =
-             Parser.parse("@intent.foo", concepts_compiler: compiler)
+    test "@concept compiler error case" do
+      assert {:error, _} = Parser.parse("@foo")
+
+      compiler = fn _ ->
+        nil
+      end
+
+      assert {:error, "concepts_compiler " <> _} =
+               Parser.parse("@intent.foo", concepts_compiler: compiler)
+    end
   end
 
   ###

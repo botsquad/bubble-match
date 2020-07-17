@@ -357,6 +357,10 @@ defmodule BubbleMatch.Parser do
     rules
   end
 
+  defp ensure_eat_before_rules([{:any, _, _} | _] = rules) do
+    rules
+  end
+
   defp ensure_eat_before_rules(rules) do
     [{:any, [], [repeat: {0, :infinity, :nongreedy}]} | rules]
   end

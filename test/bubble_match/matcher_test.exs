@@ -18,6 +18,14 @@ defmodule BubbleMatch.MatcherTest do
       assert :nomatch == Matcher.match("hello world", "Hello there cruel world!")
     end
 
+    test "very long match" do
+      assert {:match, %{}} ==
+               Matcher.match(
+                 "a b c d e f g h i j k l m n o p q r s t u v w x y z a b c d e f g h i j k l m n o p q r s t u v w x y z",
+                 "a b c d e f g h i j k l m n o p q r s t u v w x y z a b c d e f g h i j k l m n o p q r s t u v w x y z"
+               )
+    end
+
     test "words w/ emoji" do
       assert {:match, %{}} == Matcher.match("😍", "hi 😍")
     end
@@ -265,8 +273,8 @@ defmodule BubbleMatch.MatcherTest do
     assert {:match, %{}} = Matcher.match("hello [0-1] world", "Hello there world!")
     assert {:match, %{}} = Matcher.match("hello [0-2] world", "Hello you there world!")
 
-    assert {:match, %{"x" => x}} = Matcher.match("hello [0-2=x] world", "Hello you world!")
-    assert [%{raw: "you "}] = x
+    assert {:match, %{"x" => [x]}} = Matcher.match("hello [0-2=x] world", "Hello you world!")
+    assert %{raw: "you "} = x
 
     assert {:match, %{"xy" => xy}} = Matcher.match("a [0-2=xy] c", "a X Y c")
     assert [%{raw: "X "}, %{raw: "Y "}] = xy

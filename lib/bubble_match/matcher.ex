@@ -76,8 +76,7 @@ defmodule BubbleMatch.Matcher do
 
   defp match_rule_repeat({1, 1, _}, rule, rls_remaining, ts_remaining, ts_match, context) do
     with {:match, ts_remaining, inner, context} <-
-           match_rule(rule, rls_remaining, ts_remaining, context),
-         {:match, _, _, _} <- match_rules(rls_remaining, ts_remaining, [], context) do
+           match_rule(rule, rls_remaining, ts_remaining, context) do
       {:match, ts_remaining, inner ++ ts_match, context}
     end
   end
@@ -97,20 +96,30 @@ defmodule BubbleMatch.Matcher do
     end
   end
 
+  defp match_rule_repeat({n, _m, :greedy}, _, _, ts_remaining, _, _)
+       when n > length(ts_remaining) do
+    :nomatch
+  end
+
   defp match_rule_repeat({n, m, :greedy}, rule, rls_remaining, ts_remaining, ts_match, context)
        when m > n do
     m = prevent_infinity(m, n, ts_remaining)
 
-    with :nomatch <-
-           match_rule_repeat(
-             {m, m, :greedy},
-             rule,
-             rls_remaining,
-             ts_remaining,
-             ts_match,
-             context
-           ) do
-      match_rule_repeat({n, m - 1, :greedy}, rule, rls_remaining, ts_remaining, ts_match, context)
+    {eat_tokens, ts_remaining_split} = Enum.split(ts_remaining, m)
+
+    case match_rules(rls_remaining, ts_remaining_split, ts_match, context) do
+      :nomatch ->
+        match_rule_repeat(
+          {n, m - 1, :greedy},
+          rule,
+          rls_remaining,
+          ts_remaining,
+          ts_match,
+          context
+        )
+
+      {:match, _ts_remaining, inner, context} ->
+        {:match, ts_remaining_split, Enum.reverse(eat_tokens), context}
     end
   end
 
@@ -260,7 +269,7 @@ defmodule BubbleMatch.Matcher do
     end)
   end
 
-  defp prevent_infinity(:infinity, n, tokens), do: n + length(tokens)
+  defp prevent_infinity(:infinity, _n, tokens), do: length(tokens)
   defp prevent_infinity(m, _n, _tokens), do: m
 
   defp boolean_match(_test, [], _context) do
