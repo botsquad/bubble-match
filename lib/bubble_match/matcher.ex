@@ -107,7 +107,11 @@ defmodule BubbleMatch.Matcher do
 
     {eat_tokens, ts_remaining_split} = Enum.split(ts_remaining, m)
 
-    case match_rules(rls_remaining, ts_remaining_split, ts_match, context) do
+    with {:match, _, _, context} <- match_rule(rule, [], eat_tokens, context),
+         {:match, _ts_remaining, _inner, context} <-
+           match_rules(rls_remaining, ts_remaining_split, ts_match, context) do
+      {:match, ts_remaining_split, Enum.reverse(eat_tokens), context}
+    else
       :nomatch ->
         match_rule_repeat(
           {n, m - 1, :greedy},
@@ -117,9 +121,6 @@ defmodule BubbleMatch.Matcher do
           ts_match,
           context
         )
-
-      {:match, _ts_remaining, _inner, context} ->
-        {:match, ts_remaining_split, Enum.reverse(eat_tokens), context}
     end
   end
 

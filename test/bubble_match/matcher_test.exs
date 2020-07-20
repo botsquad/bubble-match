@@ -266,6 +266,7 @@ defmodule BubbleMatch.MatcherTest do
     assert {:match, %{}} = Matcher.match("a b?", "a c")
     assert {:match, %{}} = Matcher.match("a b?", "a b")
     assert {:match, %{}} = Matcher.match("a b?", "a")
+    assert :nomatch = Matcher.match("[Start] b? [End]", "a")
   end
 
   test "[0-N]" do
@@ -283,15 +284,17 @@ defmodule BubbleMatch.MatcherTest do
   test "[N-M]" do
     assert :nomatch = Matcher.match("hello [1-1] world", "Hello world!")
     assert {:match, %{}} = Matcher.match("hello [1-1] world", "Hello there world!")
+    assert :nomatch = Matcher.match("hello a[2-2] world", "Hello a b world!")
+
     assert {:match, %{}} = Matcher.match("hello [1-2] world", "Hello there you world!")
     assert {:match, %{}} = Matcher.match("hello [2-2] world", "Hello there you world!")
     assert :nomatch = Matcher.match("hello [2-2] world", "Hello there world!")
     assert :nomatch = Matcher.match("hello [2-3] world", "Hello there world!")
 
     assert :nomatch = Matcher.match("hello [10+] world", "Hello there world!")
-    # assert {:match, %{"all" => all}} = Matcher.match("hello [1-=all]", "Hello a b c d!")
-    # # non-greedy
-    # assert 1 == length(all)
+    assert {:match, %{"all" => all}} = Matcher.match("hello [1+=all]", "Hello a b c d!")
+    # greedy
+    assert 4 == length(all)
 
     assert :nomatch = Matcher.match("hello [10+]", "Hello a b c d!")
   end
