@@ -274,6 +274,8 @@ defmodule BubbleMatch.MatcherTest do
     assert {:match, %{}} = Matcher.match("hello [0-1] world", "Hello there world!")
     assert {:match, %{}} = Matcher.match("hello [0-2] world", "Hello you there world!")
 
+    assert :nomatch = Matcher.match("hello [0-1] world", "hello")
+
     assert {:match, %{"x" => [x]}} = Matcher.match("hello [0-2=x] world", "Hello you world!")
     assert %{raw: "you "} = x
 

@@ -52,12 +52,15 @@ defmodule BubbleMatch.Matcher do
     {:match, [], ts_match, context}
   end
 
-  defp match_rules([{_, _, ctl} | remain], [], ts_match, context) do
+  defp match_rules([{_, _, ctl}], [], ts_match, context) do
     case ctl[:repeat] do
-      {0, _, :nongreedy} when remain == [] -> {:match, [], ts_match, context}
-      {0, _, :greedy} -> {:match, [], ts_match, context}
+      {0, _, _} -> {:match, [], ts_match, context}
       _ -> :nomatch
     end
+  end
+
+  defp match_rules([{_, _, _} | _remain], [], _ts_match, _context) do
+    :nomatch
   end
 
   defp match_rules([{_, _, ctl} = rule | rest], ts_remaining, ts_match, context) do
