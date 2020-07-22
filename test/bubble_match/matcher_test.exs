@@ -160,6 +160,10 @@ defmodule BubbleMatch.MatcherTest do
       assert {:match, %{}} == Matcher.match("hi|hello", "Hi world!")
       assert :nomatch == Matcher.match("hi | hello", "world")
     end
+
+    test "OR does lookahead on match" do
+      assert {:match, %{}} = Matcher.match("(x | x y) a", "x y a")
+    end
   end
 
   test "permutation group" do

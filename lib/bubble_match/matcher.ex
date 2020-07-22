@@ -189,9 +189,9 @@ defmodule BubbleMatch.Matcher do
     |> boolean_match(ts_remaining, context)
   end
 
-  defp match_rule({:or, seqs, _}, _rls_remaining, ts_remaining, context) do
+  defp match_rule({:or, seqs, _}, rls_remaining, ts_remaining, context) do
     with {:match, ts_remaining, inner, context} <-
-           match_any_list_of_rules(seqs, ts_remaining, [], context) do
+           match_any_list_of_rules(seqs, rls_remaining, ts_remaining, [], context) do
       {:match, ts_remaining, inner, context}
     end
   end
@@ -231,6 +231,10 @@ defmodule BubbleMatch.Matcher do
       _ ->
         :nomatch
     end
+  end
+
+  defp match_rule({:sentence_end, [], _}, _rls_remaining, [], context) do
+    {:match, [], [], context}
   end
 
   defp match_rule({:sentence_end, [], _}, _rls_remaining, _ts_remaining, _context) do
@@ -290,10 +294,14 @@ defmodule BubbleMatch.Matcher do
     end
   end
 
-  defp match_any_list_of_rules(list_of_rules, tokens, ts_match, context) do
+  defp match_any_list_of_rules(list_of_rules, rls_remaining, tokens, ts_match, context) do
     Enum.reduce(list_of_rules, :nomatch, fn
       rules, :nomatch ->
-        match_rules(rules, tokens, ts_match, context)
+        with {:match, ts_remaining, ts_match, context} <-
+               match_rules(rules, tokens, ts_match, context),
+             {:match, _, _, _} <- match_rules(rls_remaining, ts_remaining, [], context) do
+          {:match, ts_remaining, ts_match, context}
+        end
 
       _, result ->
         result
