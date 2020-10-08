@@ -335,7 +335,10 @@ defmodule BubbleMatch.MatcherTest do
     assert {:match, %{"a" => [_, _, _]}} = Matcher.match("a[1+=a]", "a a a")
     assert :nomatch = Matcher.match("a[4+=a]", "a a a")
 
-    assert {:match, %{"x" => [_, _, _]}} = Matcher.match("(a | b | c)[2-3=x]", "c x a b a")
+    assert :nomatch = Matcher.match("a[2-3]", "a b c")
+
+    assert {:match, %{"x" => x = [_, _, _]}} = Matcher.match("(a | b | c)[2-3=x]", "c x a b a")
+    assert [%{value: "a"}, %{value: "b"}, %{value: "a"}] = x
   end
 
   test "concepts" do

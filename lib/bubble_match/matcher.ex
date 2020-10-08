@@ -110,7 +110,9 @@ defmodule BubbleMatch.Matcher do
 
     {eat_tokens, ts_remaining_split} = Enum.split(ts_remaining, m)
 
-    with {:match, _, _, context} <- match_rule(rule, [], eat_tokens, context),
+    eat_match = match_rule_repeat_eat_while({:match, context}, rule, eat_tokens)
+
+    with {:match, context} <- eat_match,
          {:match, _ts_remaining, _inner, context} <-
            match_rules(rls_remaining, ts_remaining_split, ts_match, context) do
       {:match, ts_remaining_split, Enum.reverse(eat_tokens), context}
@@ -132,6 +134,20 @@ defmodule BubbleMatch.Matcher do
     with {eaten, ts_remaining} <-
            match_nongreedy({n, m}, rule, rls_remaining, ts_remaining, ts_match) do
       {:match, ts_remaining, eaten ++ ts_match, context}
+    end
+  end
+
+  defp match_rule_repeat_eat_while(result, _rule, []) do
+    result
+  end
+
+  defp match_rule_repeat_eat_while(:nomatch, _rule, _eat_tokens) do
+    :nomatch
+  end
+
+  defp match_rule_repeat_eat_while({:match, context}, rule, eat_tokens) do
+    with {:match, _, _, context} <- match_rule(rule, [], eat_tokens, context) do
+      match_rule_repeat_eat_while({:match, context}, rule, tl(eat_tokens))
     end
   end
 
