@@ -10,6 +10,7 @@ gpe
 language
 law
 loc
+moment
 money
 norp
 number
