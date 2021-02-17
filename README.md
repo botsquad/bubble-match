@@ -1,10 +1,10 @@
 ## Bubblescript Matching Language (BML)
 
-[![Build status](https://travis-ci.com/botsquad/bubble-match.svg?branch=master)](https://travis-ci.com/github/botsquad/bubble-match)
+[![Build Status](https://github.com/botsquad/bubble_match/workflows/test/badge.svg)](https://github.com/botsquad/bubble_match)
 [![Hex pm](http://img.shields.io/hexpm/v/bubble_match.svg?style=flat)](https://hex.pm/packages/bubble_match)
 
 BML is a rule language for matching natural language against a rule
-base. Think of it as regular expressions for *sentences*. Whereas
+base. Think of it as regular expressions for _sentences_. Whereas
 regular expressions work on individual characters, BML rules primarily
 work on a tokenized representation of the string.
 
@@ -17,39 +17,35 @@ the output of [Spacy's Doc.to_json][spacy] function.
 > This project is still in development, and as such, the BML syntax is still subject to change.
 
 The full documentation on the BML syntax and the API reference is
-available [on hexdocs.pm](https://hexdocs.pm/bubble_match/).  To try
+available [on hexdocs.pm](https://hexdocs.pm/bubble_match/). To try
 out BML, [check out the demo
 environment](https://bml.botsquad.com/), powered by Phoenix
 Liveview.
-
 
 ## Examples
 
 Matching basic sequences of words:
 
 | Match string  | Example           | Matches? |
-|---------------|-------------------|----------|
+| ------------- | ----------------- | -------- |
 | `hello world` | Hello, world!     | **yes**  |
 | `hello world` | Well hello world  | **yes**  |
 | `hello world` | hello there world | no       |
 | `hello world` | world hello       | no       |
 
-
 Matching regular expressions:
 
 | Match string | Example | Matches? |
-|--------------|---------|----------|
+| ------------ | ------- | -------- |
 | `/[a-z]+/`   | abcd    | **yes**  |
-
 
 Match entities, with the help of Spacy and Duckling preprocessing and
 tokenizing the input:
 
 | Match string | Matches                         | Does not match  |
-|--------------|---------------------------------|-----------------|
+| ------------ | ------------------------------- | --------------- |
 | `[person]`   | George Baker                    | Hello world     |
 | `[time]`     | I walked to the store yesterday | My name is John |
-
 
 ## Rules overview
 
@@ -63,24 +59,23 @@ rules. Each individual has the following syntax:
 Basic words; rules consisting of only alphanumeric characters.
 
 Matching is done on both the lowercased, normalized, accents-removed
-version of the word, and on the lemmatization of the word. The *lemma*
+version of the word, and on the lemmatization of the word. The _lemma_
 of a word is its base version; e.g. for verbs it is the root form (are
 → be, went → go); for nouns it is the singular form of the word.
 
-Some languages (german, dutch, …) have *compound nouns*, that are often
-written both with and without spaces or dashes.  Use a dash (`-`) to
+Some languages (german, dutch, …) have _compound nouns_, that are often
+written both with and without spaces or dashes. Use a dash (`-`) to
 match on such compound nouns: the rule `was-machine` matches all of
 `wasmachine`, `was-machine` and `was machine`.
 
 The apostrophe sign is also supported as part of a word, for instance
 when matching something like `Martha's cookies`. In this case, the
-apostrophe `'s` part is called the *particle*. For places where the
+apostrophe `'s` part is called the _particle_. For places where the
 apostrophe is a verb, e.g. in `he'll do that`, you can write the verb
 ("will") in full in the BML, as Spacy will determine the proper
 verb. In that case, the BML query would be `he will do that`, which
 would also match the version with the apostrophe. Same goes for
 `don't`, `he's`, etc.
-
 
 ### Literals
 
@@ -90,15 +85,13 @@ Matches a literal piece of text, which can span multiple
 tokens. Matching is **case insensitive**, and also insensitive to
 the presence of accented characters.
 
-
-### Ignoring tokens: _
+### Ignoring tokens: \_
 
 `hello _ world`
 
 The standalone occurence of `_` matches 0-5 of any available token,
 non-greedy. This can be used in places where you expect a few tokens
 to occur but you don't care about the tokens.
-
 
 ### Matching a range of tokens
 
@@ -111,7 +104,6 @@ to occur but you don't care about the tokens.
 Use this when you know how many tokens you need to match, but it does
 not matter what the contents of the tokens is.
 
-
 ### Entities
 
 Entity tokens: `[email]` matches a token of type `:entity` with
@@ -123,40 +115,38 @@ name as the entity's kind.
 
 The default list of supported entities is the following:
 
- - `amount_of_money` (duckling)
- - `credit_card_number` (duckling)
- - `date` (spacy)
- - `distance` (duckling)
- - `duration` (duckling)
- - `email` (duckling)
- - `event` (spacy)
- - `fac` (spacy)
- - `gpe` (spacy)
- - `language` (spacy)
- - `law` (spacy)
- - `loc` (spacy)
- - `money` (spacy)
- - `norp` (spacy)
- - `number` (duckling)
- - `ordinal` (duckling)
- - `org` (spacy)
- - `percent` (spacy)
- - `person` (spacy)
- - `phone_number` (duckling)
- - `product` (spacy)
- - `quantity` (duckling)
- - `temperature` (duckling)
- - `time` (duckling)
- - `url` (duckling)
- - `volume` (duckling)
- - `work_of_art` (spacy)
+- `amount_of_money` (duckling)
+- `credit_card_number` (duckling)
+- `date` (spacy)
+- `distance` (duckling)
+- `duration` (duckling)
+- `email` (duckling)
+- `event` (spacy)
+- `fac` (spacy)
+- `gpe` (spacy)
+- `language` (spacy)
+- `law` (spacy)
+- `loc` (spacy)
+- `money` (spacy)
+- `norp` (spacy)
+- `number` (duckling)
+- `ordinal` (duckling)
+- `org` (spacy)
+- `percent` (spacy)
+- `person` (spacy)
+- `phone_number` (duckling)
+- `product` (spacy)
+- `quantity` (duckling)
+- `temperature` (duckling)
+- `time` (duckling)
+- `url` (duckling)
+- `volume` (duckling)
+- `work_of_art` (spacy)
 
 From our experience, Duckling entities work much better than Spacy
 entities, and are preferred for use. Besides being more accurate, the
 Duckling entities also provide more metadata, like valid UTC times
 when a date is recognized.
-
-
 
 ### Regular expressions
 
@@ -170,35 +160,32 @@ Regular expression named capture groups are also supported, to capture
 a specific part of a string: `/KL(?<flight_number>\d+)/` matches
 KL12345 and extracts `12345` as the `flight_number` capture.
 
-
 ### OR / grouping construct
 
 Use parentheses combined with the pipe `|` character to specify an OR clause.
 
-  - `pizza | fries | chicken` - OR-clause on the root level without
-    parens, matches either token
+- `pizza | fries | chicken` - OR-clause on the root level without
+  parens, matches either token
 
-  - `a ( a | b | c )` - use parentheses to separate OR-clauses;
-    matches one token consisting of first `a`, and then `a`, `b` or
-    `c`.
+- `a ( a | b | c )` - use parentheses to separate OR-clauses;
+  matches one token consisting of first `a`, and then `a`, `b` or
+  `c`.
 
-  - `( hi | hello )[=greeting]` matches 1 token and stores it in `greeting`
+- `( hi | hello )[=greeting]` matches 1 token and stores it in `greeting`
 
 Parenthesis with | can also be used to capture a sequence of tokens together as one group:
 
-  - `( a )[3+]` matches 3 or more token consisting of `a`
-
+- `( a )[3+]` matches 3 or more token consisting of `a`
 
 ### Permutation construct
 
 The permutation construct using pointy brackets, `<`, `>` matches the
 given rules in no particular order.
 
- `< a b c >` matches any permutation of the sequence `a b c`; `a c b`, or `b a c`, or `c a b`, etc
+`< a b c >` matches any permutation of the sequence `a b c`; `a c b`, or `b a c`, or `c a b`, etc
 
 An implicit `_` is inserted between all rules. So the rule `<a b>` can
 also be written as `(a _ b | b _ a)`.
-
 
 ### Start / end sentence markers
 
@@ -212,7 +199,6 @@ To match the beginning of end of sentences, the following constructs can be used
 > split into multiple sentences, based on the Spacy sentence
 > tokenizer.
 
-
 ### Part-of-speech tags (word kinds)
 
 To be able to disambiguate between word kinds, the `%` construct
@@ -224,11 +210,9 @@ matches on the POS-tag of a token:
 Any other [POS Spacy tags](https://spacy.io/api/annotation#pos-en) are
 valid as well.
 
-
 ### Optionality modifier
 
 An appended `?` makes the given rule optional (it needs to occur 0 or 1 times).
-
 
 ### Repetition modifier
 
@@ -241,17 +225,15 @@ and/or a capture expression.
 - `a[2+?]` match 2 or more `a`'s (non-greedy)
 - `a[1-3?]` match 1 to 3 `a`'s (non-greedy)
 
-
 ### Capture modifier
 
 `(my name is _)[=x]` stores the entire token sequence "My name is john"
 
-
 ### Punctuation
 
 Punctuation is optional, and can be ignored while creating match
-rules. However, punctuation tokens *are* stored in the tokenized
-version of the input; in fact, multiple *tokenizations* of the input
+rules. However, punctuation tokens _are_ stored in the tokenized
+version of the input; in fact, multiple _tokenizations_ of the input
 are stored for each sentence, one without and one with with the
 punctuation.
 
@@ -262,7 +244,6 @@ The sentence `Hello, world.` is stored both as:
 
 Matching punctuation can be done by including the punctuation into `'`
 literal quotes.
-
 
 ## Sentence tokenization
 
@@ -278,7 +259,6 @@ However, the prefered way of using this library is by running the
 input through an NLP preprocessor like Spacy, which does tokenize an
 input into individual sentences.
 
-
 ## Sigil
 
 For use within Elixir, it is possible to use a `~m` sigil which parses
@@ -293,7 +273,6 @@ defmodule MyModule do
   end
 end
 ```
-
 
 ## Installation
 
