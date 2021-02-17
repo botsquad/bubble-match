@@ -25,4 +25,13 @@ defmodule BubbleMatch.Sentence.TokenizerTest do
   test "compound" do
     assert [_] = Tokenizer.tokenize("a-b-c")
   end
+
+  test "whitespace" do
+    assert [_, _] = Tokenizer.tokenize("\nHello world\n   \n")
+    assert [_, _] = Tokenizer.tokenize("	Hello world")
+    assert [_, _] = Tokenizer.tokenize(" Hello world")
+    assert [_, _] = Tokenizer.tokenize(" Hello world   ")
+    assert [] = Tokenizer.tokenize("   ")
+    assert [] = Tokenizer.tokenize("")
+  end
 end

@@ -90,12 +90,18 @@ defmodule BubbleMatch.Sentence.Tokenizer do
   )
 
   def tokenize(input) do
-    case sentence(input) do
-      {:ok, tokens, "", _, _, _} ->
-        Enum.with_index(tokens)
-        |> Enum.map(fn {token, index} ->
-          %{token | index: index}
-        end)
+    case String.trim(input) do
+      "" ->
+        []
+
+      trimmed ->
+        case sentence(trimmed) do
+          {:ok, tokens, "", _, _, _} ->
+            Enum.with_index(tokens)
+            |> Enum.map(fn {token, index} ->
+              %{token | index: index}
+            end)
+        end
     end
   end
 end
