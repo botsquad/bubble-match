@@ -1,6 +1,6 @@
 ## Bubblescript Matching Language (BML)
 
-[![Build Status](https://github.com/botsquad/bubble_match/workflows/test/badge.svg)](https://github.com/botsquad/bubble_match)
+[![Build Status](https://github.com/botsquad/bubble-match/workflows/test/badge.svg)](https://github.com/botsquad/bubble-match)
 [![Hex pm](http://img.shields.io/hexpm/v/bubble_match.svg?style=flat)](https://hex.pm/packages/bubble_match)
 
 BML is a rule language for matching natural language against a rule
