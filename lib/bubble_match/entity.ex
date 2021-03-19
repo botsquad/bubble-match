@@ -3,12 +3,13 @@ defmodule BubbleMatch.Entity do
     kind: nil,
     provider: nil,
     value: nil,
+    raw: nil,
     extra: %{}
 
   alias __MODULE__, as: M
 
-  def new(provider, kind, value, extra \\ %{}) do
-    %M{provider: provider, kind: kind, value: value, extra: extra}
+  def new(provider, kind, value, raw, extra \\ %{}) do
+    %M{provider: provider, kind: kind, value: value, raw: raw, extra: extra}
   end
 end
 

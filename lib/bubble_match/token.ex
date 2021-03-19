@@ -115,7 +115,7 @@ defmodule BubbleMatch.Token do
   def from_spacy_entity(spacy_entity_json, sentence_text) do
     {start, end_} = {spacy_entity_json["start"], spacy_entity_json["end"]}
     raw = String.slice(sentence_text, start, end_ - start)
-    entity = Entity.new("spacy", Inflex.underscore(spacy_entity_json["label"]), raw)
+    entity = Entity.new("spacy", Inflex.underscore(spacy_entity_json["label"]), raw, raw)
 
     %M{
       type: :entity,
@@ -133,9 +133,10 @@ defmodule BubbleMatch.Token do
     {start, end_} = {duckling_entity["start"], duckling_entity["end"]}
 
     value = duckling_entity["value"]["value"]
+    raw = duckling_entity["body"]
     extra = duckling_entity["value"] |> Map.delete("value")
 
-    entity = Entity.new("duckling", Inflex.underscore(duckling_entity["dim"]), value, extra)
+    entity = Entity.new("duckling", Inflex.underscore(duckling_entity["dim"]), value, raw, extra)
 
     %M{
       type: :entity,
