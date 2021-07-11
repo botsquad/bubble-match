@@ -44,6 +44,7 @@ defmodule BubbleMatch.MixProject do
       {:nimble_parsec, "~> 0.5.3"},
       {:inflex, "~> 2.0"},
       {:jason, "~> 1.0"},
+      {:libgraph, "~> 0.13"},
       {:ex_doc, ">= 0.0.0", only: :dev},
       {:stream_data, "~> 0.1", only: :test}
     ]

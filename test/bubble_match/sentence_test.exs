@@ -3,22 +3,39 @@ defmodule BubbleMatch.SentenceTest do
 
   alias BubbleMatch.{Entity, Sentence}
 
+  test "tokenize" do
+    sentence =
+      Sentence.naive_tokenize("My birthday, is the day after tomorrow, 10 miles away")
+      |> Sentence.skip_punct()
+
+    graph = Sentence.make_dot(sentence)
+    # IO.puts(graph)
+    #    view_graph(sentence)
+    assert String.contains?(graph, "start -> v0")
+    assert String.contains?(graph, "v0 -> v1")
+    assert String.contains?(graph, "v1 -> v2")
+    # punct is skipped
+    assert String.contains?(graph, "v1 -> v3")
+  end
+
   @spacy_json """
               {"ents":[{"end":27,"label":"PERSON","start":21}],"sents":[{"end":9,"start":0},{"end":27,"start":10}],"text":"Hi there. My name is George","tokens":[{"dep":"ROOT","end":2,"head":0,"id":0,"lemma":"hi","norm":"hi","pos":"INTJ","start":0,"string":"Hi ","tag":"UH"},{"dep":"advmod","end":8,"head":0,"id":1,"lemma":"there","norm":"there","pos":"ADV","start":3,"string":"there","tag":"RB"},{"dep":"punct","end":9,"head":0,"id":2,"lemma":".","norm":".","pos":"PUNCT","start":8,"string":". ","tag":"."},{"dep":"poss","end":12,"head":4,"id":3,"lemma":"-PRON-","norm":"my","pos":"DET","start":10,"string":"My ","tag":"PRP$"},{"dep":"nsubj","end":17,"head":5,"id":4,"lemma":"name","norm":"name","pos":"NOUN","start":13,"string":"name ","tag":"NN"},{"dep":"ROOT","end":20,"head":5,"id":5,"lemma":"be","norm":"is","pos":"AUX","start":18,"string":"is ","tag":"VBZ"},{"dep":"attr","end":27,"head":5,"id":6,"lemma":"George","norm":"george","pos":"PROPN","start":21,"string":"George","tag":"NNP"}]}
               """
               |> Jason.decode!()
 
   test "from_spacy" do
-    [hithere, mynameis] = Sentence.sentences_from_spacy(@spacy_json)
+    sentence = Sentence.from_spacy(@spacy_json)
 
-    assert [_, [_, _, _]] = hithere.tokenizations
+    view_graph(sentence)
+    #    System.cmd("dot", ["-Tpng", "/tmp/x.dot"])
+    # assert [_, [_, _, _]] = hithere.tokenizations
 
-    assert [with_ents, raw_tokens] = mynameis.tokenizations
+    # assert [with_ents, raw_tokens] = mynameis.tokenizations
 
-    assert ~w(my name is george) == Enum.map(raw_tokens, & &1.value["norm"])
-    assert ~w(spacy spacy spacy entity)a == Enum.map(with_ents, & &1.type)
+    # assert ~w(my name is george) == Enum.map(raw_tokens, & &1.value["norm"])
+    # assert ~w(spacy spacy spacy entity)a == Enum.map(with_ents, & &1.type)
 
-    assert [_, _, _, %{value: %Entity{value: "George"}}] = with_ents
+    # assert [_, _, _, %{value: %Entity{value: "George"}}] = with_ents
   end
 
   test "match from spacy" do
@@ -56,6 +73,9 @@ defmodule BubbleMatch.SentenceTest do
     sentence =
       Sentence.naive_tokenize("My birthday is the day after tomorrow, 10 miles away")
       |> Sentence.add_duckling_entities(@duckling_json)
+      |> Sentence.skip_punct()
+
+    view_graph(sentence)
 
     assert [with_ents, with_ents_punct | _] = sentence.tokenizations
 
@@ -112,21 +132,21 @@ defmodule BubbleMatch.SentenceTest do
                  |> Jason.decode!()
 
   @time_spacy """
-              {"text":"9 p.m.","ents":[],"sents":[{"start":0,"end":1},{"start":2,"end":6}],"tokens":[{"id":0,"start":0,"end":1,"pos":"NUM","tag":"CD","dep":"ROOT","head":0,"string":"9 ","lemma":"9","norm":"9"},{"id":1,"start":2,"end":6,"pos":"NOUN","tag":"NN","dep":"ROOT","head":1,"string":"p.m.","lemma":"p.m.","norm":"p.m."}]}
+              {"text":"9 p.m.","ents":[],"sents":[{"start":0,"end":9}],"tokens":[{"id":0,"start":0,"end":1,"pos":"NUM","tag":"CD","dep":"ROOT","head":0,"string":"9 ","lemma":"9","norm":"9"},{"id":1,"start":2,"end":6,"pos":"NOUN","tag":"NN","dep":"ROOT","head":1,"string":"p.m.","lemma":"p.m.","norm":"p.m."}]}
               """
               |> Jason.decode!()
 
   test "overlapping duckling entities" do
-    [a, b] = Sentence.sentences_from_spacy(@time_spacy)
+    Sentence.from_spacy(@time_spacy)
+    |> Sentence.add_duckling_entities(@time_duckling)
+    |> Sentence.skip_punct()
+    |> view_graph()
+  end
 
-    assert [_] = a.tokenizations
-    a = a |> Sentence.add_duckling_entities(@time_duckling)
-    assert [with_ents, _raw_tokens] = a.tokenizations
-    assert List.first(with_ents).value.kind == "time"
+  defp view_graph(sentence) do
+    graph = Sentence.make_dot(sentence)
 
-    assert [_] = b.tokenizations
-    b = b |> Sentence.add_duckling_entities(@time_duckling)
-    assert [with_ents, _raw_tokens] = b.tokenizations
-    assert List.first(with_ents).value.kind == "time"
+    File.write!("/tmp/x.dot", graph)
+    :os.cmd('dot /tmp/x.dot -Tpng > /tmp/x.png; eog /tmp/x.png')
   end
 end
