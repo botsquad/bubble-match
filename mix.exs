@@ -41,7 +41,7 @@ defmodule BubbleMatch.MixProject do
   defp deps do
     [
       {:bubble_lib, "~> 1.0"},
-      {:nimble_parsec, "~> 0.5.3"},
+      {:nimble_parsec, "~> 0.5 or ~> 1.0"},
       {:inflex, "~> 2.0"},
       {:jason, "~> 1.0"},
       {:ex_doc, ">= 0.0.0", only: :dev},
