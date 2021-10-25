@@ -45,6 +45,8 @@ defmodule BubbleMatch.Token do
   alias BubbleMatch.{Entity, Unidekode}
   alias __MODULE__, as: M
 
+  @emoji Unicode.Regex.compile!("^[[:Emoji:]]$")
+
   @doc """
   Given a single token in Spacy's JSON format, convert it into a token.
   """
@@ -54,6 +56,15 @@ defmodule BubbleMatch.Token do
       Map.take(t, ~w(lemma pos norm tag))
       |> Enum.map(fn {k, v} -> {k, Unidekode.to_ascii(v)} end)
       |> Map.new()
+
+    value =
+      if Regex.match?(@emoji, t["string"]) do
+        value
+        |> Map.put("pos", "EMOJI")
+        |> Map.put("emoji", t["string"])
+      else
+        value
+      end
 
     %M{
       type: :spacy,
@@ -73,7 +84,7 @@ defmodule BubbleMatch.Token do
   end
 
   def punct?(token) do
-    pos?(token, "PUNCT") || pos?(token, "SYM")
+    pos?(token, "PUNCT") || pos?(token, "SYM") || pos?(token, "EMOJI")
   end
 
   @doc """

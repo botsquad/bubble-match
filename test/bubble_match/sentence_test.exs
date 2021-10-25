@@ -129,4 +129,23 @@ defmodule BubbleMatch.SentenceTest do
     assert [with_ents, _raw_tokens] = b.tokenizations
     assert List.first(with_ents).value.kind == "time"
   end
+
+  @spacy_json """
+              {"detected_language": null, "detected_language_prob": 0.12450417876243591, "ents": [], "nlp_language": "en", "sents": [{"end": 8, "start": 0}], "text": "Thanks 👍", "tokens": [{"dep": "compound", "end": 6, "head": 1, "id": 0, "lemma": "thanks", "norm": "thanks", "pos": "INTJ", "start": 0, "string": "Thanks ", "tag": "UH"}, {"dep": "ROOT", "end": 8, "head": 1, "id": 1, "lemma": "👍", "norm": "👍", "pos": "PROPN", "start": 7, "string": "👍", "tag": "NNP"}]}
+              """
+              |> Jason.decode!()
+
+  test "Emoji can be matched" do
+    [s = %{tokenizations: [_tok, with_punct]}] = Sentence.sentences_from_spacy(@spacy_json)
+
+    assert [_, %{value: %{"pos" => "EMOJI"}}] = with_punct
+
+    assert {:match, _} = BubbleMatch.Matcher.match("%EMOJI", s)
+    assert {:match, _} = BubbleMatch.Matcher.match("%EMOJI [End]", s)
+
+    assert {:match, _} = BubbleMatch.Matcher.match("[Start] thanks [End]", s)
+    assert {:match, _} = BubbleMatch.Matcher.match("[Start] thanks %EMOJI [End]", s)
+
+    assert {:match, _} = BubbleMatch.Matcher.match("'👍'", s)
+  end
 end

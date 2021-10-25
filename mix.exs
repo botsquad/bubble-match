@@ -42,6 +42,7 @@ defmodule BubbleMatch.MixProject do
     [
       {:bubble_lib, "~> 1.0"},
       {:nimble_parsec, "~> 0.5 or ~> 1.0"},
+      {:unicode_set, "~> 1.1"},
       {:inflex, "~> 2.0"},
       {:jason, "~> 1.0"},
       {:ex_doc, "~> 0.0", only: :dev},
