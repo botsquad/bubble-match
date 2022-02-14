@@ -56,6 +56,10 @@ defmodule BubbleMatch.Sentence do
   [spacy]: https://spacy.io/api/doc#to_json
   """
   @spec from_spacy(spacy_json :: map()) :: t()
+  def from_spacy(%{"sents" => []} = s) do
+    %M{text: s["text"]}
+  end
+
   def from_spacy(spacy_json) do
     sents = spacy_json["sents"]
     start = sents |> Enum.map(& &1["start"]) |> Enum.min()
