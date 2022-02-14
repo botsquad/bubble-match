@@ -44,37 +44,33 @@ defmodule BubbleMatch.Sentence do
   end
 
   @doc """
-  Convert a JSON blob from Spacy NLP data into a list of sentences
+  Convert a JSON blob from Spacy NLP data into a sentence.
 
   This function takes the output of Spacy's [Doc.to_json][spacy]
-  function and converts it into a list of sentences.
+  function and converts it into a sentence.
+
+  Note that the Spacy tokenizer detects multiple sentences. However,
+  in many cases the result is suboptimal and therefore we always
+  construct a single sentence, given our use case of chat messages.
 
   [spacy]: https://spacy.io/api/doc#to_json
   """
-  @spec sentences_from_spacy(spacy_json :: map()) :: [t()]
-  def sentences_from_spacy(spacy_json) do
-    spacy_sentences_split(spacy_json["sents"], spacy_json, [])
-    |> Enum.map(fn {text, tokens, entities} ->
-      %M{text: text, tokenizations: both_if_different(no_punct(tokens), tokens)}
-      |> add_spacy_entities(entities, spacy_json)
-    end)
-  end
+  @spec from_spacy(spacy_json :: map()) :: t()
+  def from_spacy(spacy_json) do
+    sents = spacy_json["sents"]
+    start = sents |> Enum.map(& &1["start"]) |> Enum.min()
+    end_ = sents |> Enum.map(& &1["end"]) |> Enum.max()
+    text = String.slice(spacy_json["text"], start, end_ - start)
 
-  defp spacy_sentences_split([], _result, acc) do
-    Enum.reverse(acc)
-  end
-
-  defp spacy_sentences_split([%{"start" => start, "end" => end_} | rest], result, acc) do
-    s_text = String.slice(result["text"], start, end_ - start)
-
-    s_tokens =
-      result["tokens"]
-      |> Enum.filter(&(&1["start"] >= start && &1["end"] <= end_))
+    tokens =
+      spacy_json["tokens"]
       |> Enum.map(&Token.from_spacy/1)
       |> reindex()
 
-    s_ents = result["ents"] |> Enum.filter(&(&1["start"] >= start && &1["end"] <= end_))
-    spacy_sentences_split(rest, result, [{s_text, s_tokens, s_ents} | acc])
+    entities = spacy_json["ents"]
+
+    %M{text: text, tokenizations: both_if_different(no_punct(tokens), tokens)}
+    |> add_spacy_entities(entities, spacy_json)
   end
 
   defp add_spacy_entities(%M{} = m, [], _), do: m

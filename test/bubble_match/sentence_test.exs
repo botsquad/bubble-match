@@ -9,29 +9,26 @@ defmodule BubbleMatch.SentenceTest do
               |> Jason.decode!()
 
   test "from_spacy" do
-    [hithere, mynameis] = Sentence.sentences_from_spacy(@spacy_json)
+    hithere = Sentence.from_spacy(@spacy_json)
 
-    assert [_, [_, _, _]] = hithere.tokenizations
+    assert [with_ents_no_punct, _with_ents, raw_tokens_no_punct, _raw_tokens] =
+             hithere.tokenizations
 
-    assert [with_ents, raw_tokens] = mynameis.tokenizations
+    assert ~w(hi there my name is george) == Enum.map(raw_tokens_no_punct, & &1.value["norm"])
+    assert ~w(spacy spacy spacy spacy spacy entity)a == Enum.map(with_ents_no_punct, & &1.type)
 
-    assert ~w(my name is george) == Enum.map(raw_tokens, & &1.value["norm"])
-    assert ~w(spacy spacy spacy entity)a == Enum.map(with_ents, & &1.type)
-
-    assert [_, _, _, %{value: %Entity{value: "George"}}] = with_ents
+    assert [_, _, _, _, _, %{value: %Entity{value: "George"}}] = with_ents_no_punct
   end
 
   test "match from spacy" do
-    all = [hithere, mynameis] = Sentence.sentences_from_spacy(@spacy_json)
+    sent = Sentence.from_spacy(@spacy_json)
 
-    assert {:match, _} = BubbleMatch.Matcher.match("%NOUN", mynameis)
+    assert {:match, _} = BubbleMatch.Matcher.match("%NOUN", sent)
 
-    assert {:match, _} = BubbleMatch.Matcher.match("my name is", mynameis)
-    assert :nomatch = BubbleMatch.Matcher.match("my name is", hithere)
+    assert {:match, _} = BubbleMatch.Matcher.match("my name is", sent)
+    assert :nomatch = BubbleMatch.Matcher.match("my brother is", sent)
 
-    assert {:match, _} = BubbleMatch.Matcher.match("[Start] my name is", all)
-    assert {:match, _} = BubbleMatch.Matcher.match("hi there \".\" [End]", all)
-    assert {:match, m} = BubbleMatch.Matcher.match("[person]", all)
+    assert {:match, m} = BubbleMatch.Matcher.match("[person]", [sent])
 
     assert [%{value: %{kind: "person", value: "George"}}] = m["person"]
   end
@@ -42,7 +39,7 @@ defmodule BubbleMatch.SentenceTest do
                     |> Jason.decode!()
 
   test "spacy ignore punctuation, strip accents" do
-    [sent] = Sentence.sentences_from_spacy(@hello_world_json)
+    sent = Sentence.from_spacy(@hello_world_json)
 
     assert {:match, _} = BubbleMatch.Matcher.match("hello world", sent)
   end
@@ -94,16 +91,16 @@ defmodule BubbleMatch.SentenceTest do
   end
 
   test "encoding" do
-    [hithere, _] = Sentence.sentences_from_spacy(@spacy_json)
+    hithere = Sentence.from_spacy(@spacy_json)
     assert {:ok, encoded} = Jason.encode(hithere)
     assert "{\"__struct__\":" <> _ = encoded
   end
 
   test "access; to_string" do
-    [hithere, _] = Sentence.sentences_from_spacy(@spacy_json)
-    assert "Hi there." == hithere["text"]
-    assert "Hi there." == hithere[:text]
-    assert "Hi there." == to_string(hithere)
+    hithere = Sentence.from_spacy(@spacy_json)
+    assert "Hi there. My name is George" == hithere["text"]
+    assert "Hi there. My name is George" == hithere[:text]
+    assert "Hi there. My name is George" == to_string(hithere)
   end
 
   @time_duckling """
@@ -117,16 +114,11 @@ defmodule BubbleMatch.SentenceTest do
               |> Jason.decode!()
 
   test "overlapping duckling entities" do
-    [a, b] = Sentence.sentences_from_spacy(@time_spacy)
+    a = Sentence.from_spacy(@time_spacy)
 
     assert [_] = a.tokenizations
     a = a |> Sentence.add_duckling_entities(@time_duckling)
     assert [with_ents, _raw_tokens] = a.tokenizations
-    assert List.first(with_ents).value.kind == "time"
-
-    assert [_] = b.tokenizations
-    b = b |> Sentence.add_duckling_entities(@time_duckling)
-    assert [with_ents, _raw_tokens] = b.tokenizations
     assert List.first(with_ents).value.kind == "time"
   end
 
@@ -136,7 +128,7 @@ defmodule BubbleMatch.SentenceTest do
               |> Jason.decode!()
 
   test "Emoji can be matched" do
-    [s = %{tokenizations: [_tok, with_punct]}] = Sentence.sentences_from_spacy(@spacy_json)
+    s = %{tokenizations: [_tok, with_punct]} = Sentence.from_spacy(@spacy_json)
 
     assert [_, %{value: %{"pos" => "EMOJI"}}] = with_punct
 
@@ -147,5 +139,16 @@ defmodule BubbleMatch.SentenceTest do
     assert {:match, _} = BubbleMatch.Matcher.match("[Start] thanks %EMOJI [End]", s)
 
     assert {:match, _} = BubbleMatch.Matcher.match("'👍'", s)
+  end
+
+  @spacy_json """
+              {"detected_language": "nl", "detected_language_prob": 0.6659534573554993, "ents": [{"end": 26, "label": "CARDINAL", "start": 24}], "nlp_language": "nl", "sents": [{"end": 23, "start": 0}, {"end": 26, "start": 24}], "text": "Bosboom Toussaintstraat 23", "tokens": [{"dep": "ROOT", "end": 7, "head": 0, "id": 0, "lemma": "bosboom", "morph": "", "norm": "bosboom", "pos": "PROPN", "start": 0, "tag": "SPEC|deeleigen", "text": "Bosboom"}, {"dep": "flat", "end": 23, "head": 0, "id": 1, "lemma": "toussaintstraat", "morph": "", "norm": "toussaintstraat", "pos": "PROPN", "start": 8, "tag": "SPEC|deeleigen", "text": "Toussaintstraat"}, {"dep": "ROOT", "end": 26, "head": 2, "id": 2, "lemma": "23", "morph": "", "norm": "23", "pos": "NUM", "start": 24, "tag": "TW|hoofd|vrij", "text": "23"}]}
+              """
+              |> Jason.decode!()
+
+  test "spacy 3.2" do
+    s = Sentence.from_spacy(@spacy_json)
+
+    assert {:match, _} = BubbleMatch.Matcher.match("/straat|weg/ %NUM", s)
   end
 end

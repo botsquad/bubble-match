@@ -57,11 +57,14 @@ defmodule BubbleMatch.Token do
       |> Enum.map(fn {k, v} -> {k, Unidekode.to_ascii(v)} end)
       |> Map.new()
 
+    # 'string' is for spacy < 3.0
+    text = t["text"] || t["string"]
+
     value =
-      if Regex.match?(@emoji, t["string"]) do
+      if Regex.match?(@emoji, text) do
         value
         |> Map.put("pos", "EMOJI")
-        |> Map.put("emoji", t["string"])
+        |> Map.put("emoji", text)
       else
         value
       end
@@ -69,7 +72,7 @@ defmodule BubbleMatch.Token do
     %M{
       type: :spacy,
       value: value,
-      raw: t["string"],
+      raw: text,
       index: t["id"],
       start: t["start"],
       end: t["end"]
