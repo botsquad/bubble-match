@@ -1,4 +1,4 @@
-use Mix.Config
+import Config
 
 # List the valid entities. They default to the combination of the
 # builtin Spacy entities,
