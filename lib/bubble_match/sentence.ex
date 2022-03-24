@@ -70,6 +70,14 @@ defmodule BubbleMatch.Sentence do
       spacy_json["tokens"]
       |> Enum.map(&Token.from_spacy/1)
       |> reindex()
+      |> Enum.chunk_every(2, 1, [nil])
+      |> Enum.map(fn
+        [tok, nil] -> tok
+        [tok, next] -> %{tok | end: next.start - 1}
+      end)
+      |> Enum.map(fn tok ->
+        %{tok | raw: String.pad_trailing(tok.raw, tok.end - tok.start + 1)}
+      end)
 
     entities = spacy_json["ents"]
 

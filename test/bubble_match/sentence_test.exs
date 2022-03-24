@@ -152,6 +152,13 @@ defmodule BubbleMatch.SentenceTest do
     assert {:match, _} = BubbleMatch.Matcher.match("/straat|weg/ %NUM", s)
   end
 
+  test "match against spacy" do
+    s = Sentence.from_spacy(@spacy_json)
+    re = "/\\d{2}/[=num]"
+
+    assert {:match, %{"num" => [%{raw: "23"}]}} = BubbleMatch.Matcher.match(re, s)
+  end
+
   @spacy_json """
               {"detected_language": null, "detected_language_prob": 0.12450417876243591, "ents": [], "nlp_language": "en", "sents": [], "text": "", "tokens": []}
               """
