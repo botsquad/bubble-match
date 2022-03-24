@@ -209,7 +209,7 @@ defmodule BubbleMatch.Matcher do
     input_str = t.raw |> String.trim_trailing()
 
     case Regex.scan(re, input_str) do
-      [[capture | groups] | _] ->
+      [[_capture | groups] | _] ->
         context = opt_add_regex_captures(groups, context, re, input_str)
         {:match, ts_remaining, [t], context}
 
