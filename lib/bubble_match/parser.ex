@@ -68,7 +68,16 @@ defmodule BubbleMatch.Parser do
     |> unwrap_and_tag(:perm)
 
   defp regex_compile(r) do
-    Regex.compile!(to_string(r), "iu")
+    #    {string, re_flags, match_flags}
+    {{:flags, flags}, chars} = List.pop_at(r, length(r) - 1)
+
+    {re, token_match} =
+      case flags == [?T] do
+        true -> {"^" <> to_string(chars) <> "$", true}
+        false -> {to_string(chars), false}
+      end
+
+    {Regex.compile!(re, "iu"), token_match}
   end
 
   regex =
@@ -81,6 +90,7 @@ defmodule BubbleMatch.Parser do
       ])
     )
     |> ignore(ascii_char([?/]))
+    |> optional(repeat(ascii_char([?T])) |> tag(:flags))
     |> reduce(:regex_compile)
     |> unwrap_and_tag(:regex)
 

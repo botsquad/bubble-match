@@ -22,6 +22,7 @@ defmodule BubbleMatch.ParserTest do
     "(a | b)?",
     "/^\\/quit$/",
     "this is a /regex/",
+    "this is a /regex/T",
     "%VERB",
     "😍",
     "< a < b c > > d",

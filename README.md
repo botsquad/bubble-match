@@ -160,6 +160,17 @@ Regular expression named capture groups are also supported, to capture
 a specific part of a string: `/KL(?<flight_number>\d+)/` matches
 KL12345 and extracts `12345` as the `flight_number` capture.
 
+### Per-token regular expressions
+
+`/regex/T`
+
+The special regex flag `T` is used to indicate that the regex should be run
+against a single token instead of against the raw text of the sentence.
+
+This will make the regex capturing much more 'narrow'. The regex start and end
+symbols (`^` and `$`) are automatically added to the regex, so eg the BML
+`/\d{4}/T` will match the token "1234" but _not_ "12345".
+
 ### OR / grouping construct
 
 Use parentheses combined with the pipe `|` character to specify an OR clause.

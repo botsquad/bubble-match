@@ -170,7 +170,12 @@ defmodule BubbleMatch.Matcher do
     :nomatch
   end
 
-  defp match_rule({:regex, re, _}, _rls_remaining, [t | _] = ts_remaining, context) do
+  defp match_rule(
+         {:regex, {re, _token_match = false}, _},
+         _rls_remaining,
+         [t | _] = ts_remaining,
+         context
+       ) do
     input_str =
       case ts_remaining do
         [%{index: 0} | _] -> Enum.map(ts_remaining, & &1.raw)
@@ -189,6 +194,24 @@ defmodule BubbleMatch.Matcher do
 
         context = opt_add_regex_captures(groups, context, re, input_str)
         {:match, ts_remaining, Enum.reverse(ts_match), context}
+
+      [] ->
+        :nomatch
+    end
+  end
+
+  defp match_rule(
+         {:regex, {re, _token_match = true}, _},
+         _rls_remaining,
+         [t | ts_remaining],
+         context
+       ) do
+    input_str = t.raw |> String.trim_trailing()
+
+    case Regex.scan(re, input_str) do
+      [[capture | groups] | _] ->
+        context = opt_add_regex_captures(groups, context, re, input_str)
+        {:match, ts_remaining, [t], context}
 
       [] ->
         :nomatch

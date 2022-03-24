@@ -147,6 +147,25 @@ defmodule BubbleMatch.MatcherTest do
     end
   end
 
+  describe "regex per token" do
+    test "regex with T works on single token" do
+      assert :nomatch == Matcher.match("/hello world/T", "hello world")
+      assert {:match, %{}} == Matcher.match("/world/T", "hello world lala")
+
+      assert {:match, %{"code" => [%{raw: "1234"}]}} =
+               Matcher.match("/\\d{4}/T[=code]", "my code is 1234")
+
+      assert :nomatch = Matcher.match("/\\d{4}/T[=code]", "my code is 01234")
+    end
+
+    test "regex with T support capture groups" do
+      assert {:match, %{"digits" => [t]}} =
+               Matcher.match("/KL(?<digits>\\d+)/T", "my number is KL1234")
+
+      assert "1234" == t.raw
+    end
+  end
+
   describe "OR group" do
     test "OR group" do
       assert {:match, %{}} == Matcher.match("(hello | hi) world", "Hello world!")
