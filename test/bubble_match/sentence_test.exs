@@ -168,4 +168,17 @@ defmodule BubbleMatch.SentenceTest do
     s = Sentence.from_spacy(@spacy_json)
     assert s.text == ""
   end
+
+  @spacy_json """
+              {"detected_language": "nl", "detected_language_prob": 0.5985481142997742, "ents": [{"end": 5, "label": "DATE", "start": 1}], "nlp_language": "nl", "sents": [{"end": 5, "start": 0}], "text": " juni", "tokens": [{"dep": "_sp", "end": 1, "head": 0, "id": 0, "lemma": " ", "morph": "", "norm": " ", "pos": "SPACE", "start": 0, "tag": "_SP", "text": " "}, {"dep": "appos", "end": 5, "head": 0, "id": 1, "lemma": "juni", "morph": "Gender=Com|Number=Sing", "norm": "juni", "pos": "PROPN", "start": 1, "tag": "N|eigen|ev|basis|zijd|stan", "text": "juni"}]}
+
+              """
+              |> Jason.decode!()
+
+  test "sent w/ space" do
+    s = Sentence.from_spacy(@spacy_json)
+
+    assert :nomatch = BubbleMatch.Matcher.match("'foo'", s)
+    assert {:match, _} = BubbleMatch.Matcher.match("'juni'", s)
+  end
 end

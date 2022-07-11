@@ -243,7 +243,7 @@ defmodule BubbleMatch.Matcher do
         t, {matched, remaining, str} ->
           raw = String.trim_trailing(t.raw) |> Token.base_form()
 
-          if String.starts_with?(str, raw) do
+          if raw != "" and String.starts_with?(str, raw) do
             case String.trim_leading(str, raw) do
               "" ->
                 {:halt, {:match, tl(remaining), [t | matched], context}}
