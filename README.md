@@ -14,8 +14,6 @@ the output of [Spacy's Doc.to_json][spacy] function.
 
 [spacy]: https://spacy.io/api/doc#to_json
 
-> This project is still in development, and as such, the BML syntax is still subject to change.
-
 The full documentation on the BML syntax and the API reference is
 available [on hexdocs.pm](https://hexdocs.pm/bubble_match/). To try
 out BML, [check out the demo
