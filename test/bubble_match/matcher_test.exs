@@ -328,14 +328,34 @@ defmodule BubbleMatch.MatcherTest do
     assert {:match, %{}} = Matcher.match("[1+] world", "hello world")
   end
 
-  test "entities" do
-    amsterdam = %Token{type: :entity, start: 10, end: 19, value: %{kind: "loc"}}
+  describe "entities" do
+    setup do
+      amsterdam = %Token{
+        type: :entity,
+        start: 10,
+        end: 19,
+        value: %{kind: "loc"},
+        raw: "Amsterdam"
+      }
 
-    sentence =
-      Sentence.naive_tokenize("I live in Amsterdam")
-      |> Sentence.add_tokenization([[amsterdam]])
+      sentence =
+        Sentence.naive_tokenize("I live in Amsterdam")
+        |> Sentence.add_tokenization([[amsterdam]])
 
-    assert {:match, %{}} = Matcher.match("live in [loc]", sentence)
+      {:ok, sentence: sentence}
+    end
+
+    test "basic match", %{sentence: sentence} do
+      assert {:match, %{"x" => [x]}} = Matcher.match("live in [loc=x]", sentence)
+      assert x.type == :entity
+    end
+
+    test "ignore tokenizations with entities when not matching on entity in BML", %{
+      sentence: sentence
+    } do
+      assert {:match, %{"x" => [x]}} = Matcher.match("live in /Ams/[=x]", sentence)
+      assert x.type != :entity
+    end
   end
 
   test "repetitions" do

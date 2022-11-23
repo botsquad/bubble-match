@@ -25,7 +25,9 @@ defmodule BubbleMatch.Matcher do
   end
 
   def match(%BubbleMatch{} = expr, %Sentence{} = sentence) do
-    Enum.reduce_while(sentence.tokenizations, :nomatch, fn tokens, acc ->
+    sentence.tokenizations
+    |> conditionally_remove_entity_tokenizations(expr)
+    |> Enum.reduce_while(:nomatch, fn tokens, acc ->
       case match_rules(expr.ast, tokens, [], %{}) do
         {:match, _, _, context} ->
           {:halt, {:match, context}}
@@ -35,6 +37,35 @@ defmodule BubbleMatch.Matcher do
       end
     end)
   end
+
+  defp conditionally_remove_entity_tokenizations(tokenizations, expr) do
+    if not ast_match(expr.ast, &match?({:entity, _, _}, &1)) do
+      tokenizations
+      |> Enum.flat_map(fn tokenization ->
+        if Enum.find(tokenization, &(&1.type == :entity)) do
+          []
+        else
+          [tokenization]
+        end
+      end)
+    else
+      tokenizations
+    end
+  end
+
+  defp ast_match(list, matcher) when is_list(list) do
+    Enum.any?(list, &ast_match(&1, matcher))
+  end
+
+  defp ast_match({_type, children, _opts} = node, matcher) do
+    case matcher.(node) do
+      true -> true
+      false when is_list(children) -> ast_match(children, matcher)
+      false -> false
+    end
+  end
+
+  defp ast_match(_, _), do: false
 
   defp match_rules(nil, _ts_remaining, _ts_match, _context) do
     :nomatch

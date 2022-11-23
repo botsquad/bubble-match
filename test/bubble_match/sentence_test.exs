@@ -154,9 +154,10 @@ defmodule BubbleMatch.SentenceTest do
 
   test "match against spacy" do
     s = Sentence.from_spacy(@spacy_json)
-    re = "/\\d{1}$/[=num]"
 
-    assert {:match, %{"num" => [%{raw: "23"}]}} = BubbleMatch.Matcher.match(re, s)
+    re = "/\\d{1}/[=num]"
+
+    assert {:match, %{"num" => [%{raw: "23 "}]}} = BubbleMatch.Matcher.match(re, s)
   end
 
   @spacy_json """
