@@ -141,6 +141,21 @@ defmodule BubbleMatch.SentenceTest do
     assert {:match, _} = BubbleMatch.Matcher.match("'👍'", s)
   end
 
+  @spacy_json2 """
+              {"detected_language": null, "detected_language_prob": 0.12450417876243591, "ents": [], "nlp_language": "en", "sents": [{"end": 8, "start": 0}], "text": "Thanks 8", "tokens": [{"dep": "compound", "end": 6, "head": 1, "id": 0, "lemma": "thanks", "norm": "thanks", "pos": "INTJ", "start": 0, "string": "Thanks ", "tag": "UH"}, {"dep": "ROOT", "end": 8, "head": 1, "id": 1, "lemma": "8", "norm": "8", "pos": "PROPN", "start": 7, "string": "8", "tag": "NNP"}]}
+              """
+              |> Jason.decode!()
+
+  test "Emoji false positive" do
+    s = %{tokenizations: [_]} = Sentence.from_spacy(@spacy_json2)
+
+    assert :nomatch = BubbleMatch.Matcher.match("%EMOJI", s)
+    assert :nomatch = BubbleMatch.Matcher.match("%EMOJI [End]", s)
+
+    assert :nomatch = BubbleMatch.Matcher.match("[Start] thanks [End]", s)
+    assert :nomatch = BubbleMatch.Matcher.match("[Start] thanks %EMOJI [End]", s)
+  end
+
   @spacy_json """
               {"detected_language": "nl", "detected_language_prob": 0.6659534573554993, "ents": [{"end": 26, "label": "CARDINAL", "start": 24}], "nlp_language": "nl", "sents": [{"end": 23, "start": 0}, {"end": 26, "start": 24}], "text": "Bosboom Toussaintstraat 23", "tokens": [{"dep": "ROOT", "end": 7, "head": 0, "id": 0, "lemma": "bosboom", "morph": "", "norm": "bosboom", "pos": "PROPN", "start": 0, "tag": "SPEC|deeleigen", "text": "Bosboom"}, {"dep": "flat", "end": 23, "head": 0, "id": 1, "lemma": "toussaintstraat", "morph": "", "norm": "toussaintstraat", "pos": "PROPN", "start": 8, "tag": "SPEC|deeleigen", "text": "Toussaintstraat"}, {"dep": "ROOT", "end": 26, "head": 2, "id": 2, "lemma": "23", "morph": "", "norm": "23", "pos": "NUM", "start": 24, "tag": "TW|hoofd|vrij", "text": "23"}]}
               """

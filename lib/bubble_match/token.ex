@@ -45,7 +45,7 @@ defmodule BubbleMatch.Token do
   alias BubbleMatch.{Entity, Unidekode}
   alias __MODULE__, as: M
 
-  @emoji Unicode.Regex.compile!("^[[:Emoji:]]$")
+  @emoji Unicode.Regex.compile!("^[[:Emoji:]-[:ascii:]]$")
 
   @doc """
   Given a single token in Spacy's JSON format, convert it into a token.
