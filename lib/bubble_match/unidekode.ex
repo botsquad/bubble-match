@@ -26,12 +26,12 @@ defmodule BubbleMatch.Unidekode do
   defp to_ascii(<<>>, ascii), do: ascii
   defp to_ascii([], ascii), do: to_charlist(ascii)
 
-  defp to_ascii(<<b::utf8, rest::binary()>>, ascii) do
-    to_ascii(rest, <<ascii::binary(), transliterate(b)::binary()>>)
+  defp to_ascii(<<b::utf8, rest::binary>>, ascii) do
+    to_ascii(rest, <<ascii::binary, transliterate(b)::binary>>)
   end
 
   defp to_ascii([b | rest], ascii) do
-    to_ascii(rest, <<ascii::binary(), transliterate(b)::binary()>>)
+    to_ascii(rest, <<ascii::binary, transliterate(b)::binary>>)
   end
 
   @doc """
@@ -50,13 +50,13 @@ defmodule BubbleMatch.Unidekode do
 
   defp drop_accented(<<>>, output), do: output
 
-  defp drop_accented(<<b::utf8, rest::binary()>>, output) do
+  defp drop_accented(<<b::utf8, rest::binary>>, output) do
     case transliterate(b) do
       <<>> ->
-        drop_accented(rest, <<output::binary(), b::utf8>>)
+        drop_accented(rest, <<output::binary, b::utf8>>)
 
       t ->
-        drop_accented(rest, <<output::binary(), t::binary()>>)
+        drop_accented(rest, <<output::binary, t::binary>>)
     end
   end
 
@@ -67,7 +67,7 @@ defmodule BubbleMatch.Unidekode do
            |> Stream.flat_map(fn
              [
                capital_match,
-               <<"LATIN CAPITAL LETTER ", letter::binary-size(1), _::binary()>>,
+               <<"LATIN CAPITAL LETTER ", letter::binary-size(1), _::binary>>,
                _,
                _,
                _,
