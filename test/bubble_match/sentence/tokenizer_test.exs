@@ -34,4 +34,13 @@ defmodule BubbleMatch.Sentence.TokenizerTest do
     assert [] = Tokenizer.tokenize("   ")
     assert [] = Tokenizer.tokenize("")
   end
+
+  test "other languages" do
+    # polish
+    assert [_, _] = Tokenizer.tokenize("dzień dobry")
+    # arabic
+    assert [_, _] = Tokenizer.tokenize("صباح الخير")
+    # ukrainan
+    assert [_, _] = Tokenizer.tokenize("Добрий ранок")
+  end
 end
