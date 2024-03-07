@@ -142,9 +142,9 @@ defmodule BubbleMatch.SentenceTest do
   end
 
   @spacy_json2 """
-              {"detected_language": null, "detected_language_prob": 0.12450417876243591, "ents": [], "nlp_language": "en", "sents": [{"end": 8, "start": 0}], "text": "Thanks 8", "tokens": [{"dep": "compound", "end": 6, "head": 1, "id": 0, "lemma": "thanks", "norm": "thanks", "pos": "INTJ", "start": 0, "string": "Thanks ", "tag": "UH"}, {"dep": "ROOT", "end": 8, "head": 1, "id": 1, "lemma": "8", "norm": "8", "pos": "PROPN", "start": 7, "string": "8", "tag": "NNP"}]}
-              """
-              |> Jason.decode!()
+               {"detected_language": null, "detected_language_prob": 0.12450417876243591, "ents": [], "nlp_language": "en", "sents": [{"end": 8, "start": 0}], "text": "Thanks 8", "tokens": [{"dep": "compound", "end": 6, "head": 1, "id": 0, "lemma": "thanks", "norm": "thanks", "pos": "INTJ", "start": 0, "string": "Thanks ", "tag": "UH"}, {"dep": "ROOT", "end": 8, "head": 1, "id": 1, "lemma": "8", "norm": "8", "pos": "PROPN", "start": 7, "string": "8", "tag": "NNP"}]}
+               """
+               |> Jason.decode!()
 
   test "Emoji false positive" do
     s = %{tokenizations: [_]} = Sentence.from_spacy(@spacy_json2)

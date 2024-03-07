@@ -44,6 +44,9 @@ defmodule BubbleMatch.Unidekode do
 
       iex> BubbleMatch.Unidekode.drop_accented("código 👍")
       "codigo 👍"
+
+      iex> BubbleMatch.Unidekode.drop_accented("éé немає 👍")
+      "ee немає 👍"
   """
   @spec drop_accented(binary()) :: binary()
   def drop_accented(string), do: drop_accented(string, <<>>)
@@ -92,7 +95,7 @@ defmodule BubbleMatch.Unidekode do
            end)
            |> Stream.concat(
              for x <-
-                   '!"#%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~\s\t\n',
+                   ~c"!\"#%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~\s\t\n",
                  do: {x, <<x>>}
            )
            |> Enum.uniq()

@@ -9,7 +9,7 @@ defmodule BubbleMatch.Parser do
   @ws [9, 10, 11, 12, 13, 32]
   ws = ignore(utf8_string(@ws, min: 1))
 
-  special_chars = '`~!@#$%^&*()_+=-{}|\\][\';":?><,./' ++ @ws
+  special_chars = ~c"`~!@#$%^&*()_+=-{}|\\][';\":?><,./" ++ @ws
 
   string = utf8_string(Enum.map(special_chars, &{:not, &1}), min: 1)
 
