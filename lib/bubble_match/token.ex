@@ -54,7 +54,7 @@ defmodule BubbleMatch.Token do
   def from_spacy(t) do
     value =
       Map.take(t, ~w(lemma pos norm tag))
-      |> Enum.map(fn {k, v} -> {k, Unidekode.to_ascii(v)} end)
+      |> Enum.map(fn {k, v} -> {k, Unidekode.drop_accented(v)} end)
       |> Map.new()
 
     # 'string' is for spacy < 3.0

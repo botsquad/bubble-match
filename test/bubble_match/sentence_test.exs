@@ -197,4 +197,16 @@ defmodule BubbleMatch.SentenceTest do
     assert :nomatch = BubbleMatch.Matcher.match("'foo'", s)
     assert {:match, _} = BubbleMatch.Matcher.match("'juni'", s)
   end
+
+  @spacy_json """
+              {"text":"صباح الخير","ents":[{"start":0,"end":4,"label":"ORG"}],"sents":[{"start":0,"end":10}],"tokens":[{"id":0,"start":0,"end":4,"tag":"JJ","pos":"ADJ","morph":"Degree=Pos","lemma":"صباح","dep":"amod","head":1,"text":"صباح","norm":"صباح"},{"id":1,"start":5,"end":10,"tag":"NN","pos":"NOUN","morph":"Number=Sing","lemma":"الخير","dep":"ROOT","head":1,"text":"الخير","norm":"الخير"}],"detected_language":"ar","detected_language_prob":0.9709909558296204,"nlp_language":"en"}
+              """
+              |> Jason.decode!()
+
+  test "sent arabic" do
+    s = Sentence.from_spacy(@spacy_json)
+
+    assert [%{value: %{"lemma" => "صباح"}}, %{value: %{"lemma" => "الخير"}}] =
+             List.last(s.tokenizations)
+  end
 end
