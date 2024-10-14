@@ -87,7 +87,7 @@ the presence of accented characters.
 
 `hello _ world`
 
-The standalone occurence of `_` matches 0-5 of any available token,
+The standalone occurrence of `_` matches 0-5 of any available token,
 non-greedy. This can be used in places where you expect a few tokens
 to occur but you don't care about the tokens.
 
@@ -196,7 +196,7 @@ given rules in no particular order.
 An implicit `_` is inserted between all rules. So the rule `<a b>` can
 also be written as `(a _ b | b _ a)`.
 
-### Start / end sentence markers
+### Start / End sentence markers
 
 To match the beginning of end of sentences, the following constructs can be used:
 
@@ -219,7 +219,13 @@ matches on the POS-tag of a token:
 Any other [POS Spacy tags](https://spacy.io/api/annotation#pos-en) are
 valid as well.
 
-### Optionality modifier
+### Modifiers
+
+#### Capture modifier
+
+`(my name is _)[=x]` stores the entire token sequence "My name is john"
+
+#### Optionality modifier
 
 An appended `?` makes the given rule optional (it needs to occur 0 or 1 times).
 
@@ -234,9 +240,6 @@ and/or a capture expression.
 - `a[2+?]` match 2 or more `a`'s (non-greedy)
 - `a[1-3?]` match 1 to 3 `a`'s (non-greedy)
 
-### Capture modifier
-
-`(my name is _)[=x]` stores the entire token sequence "My name is john"
 
 ### Punctuation
 
@@ -264,7 +267,7 @@ The builtin sentence tokenizer (`BubbleMatch.Sentence.Tokenizer`) does
 **not** have the concept of sentences, and thus treats each input as a
 single sentence, even in the existence of periods in the input.
 
-However, the prefered way of using this library is by running the
+However, the preferred way of using this library is by running the
 input through an NLP preprocessor like Spacy, which does tokenize an
 input into individual sentences.
 

@@ -117,7 +117,7 @@ Almost any of the above pattern matching rules can be combined.
 - word normalization (lemmatization)
 - ( a | b ) to indicate 'or'; grouping
 - "literal" (still case insensitive)
-- '+' to indicate adjacent rules: my + name + is; no words inbetween
+- '+' to indicate adjacent rules: my + name + is; no words in between
 - ? appended = optional rule; same as [0-1] appended
 - [control instructions]
   - [=store_as_name] store last captured rule
