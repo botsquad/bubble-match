@@ -106,6 +106,7 @@ defmodule BubbleMatch.Sentence do
 
   def add_duckling_entities(%M{} = sentence, entities) do
     sequences = Enum.map(entities, &[Token.from_duckling_entity(&1)])
+
     add_tokenization(sentence, sequences)
   end
 
@@ -140,15 +141,15 @@ defmodule BubbleMatch.Sentence do
         |> reindex()
 
       start_idx != nil and end_idx == nil ->
-        {a, _} = Enum.split(token_sequence, start_idx)
+        {a, b} = Enum.split(token_sequence, start_idx)
 
-        (a ++ replace_tokens)
+        (a ++ replace_tokens ++ b)
         |> reindex()
 
       start_idx == nil and end_idx != nil ->
-        {_, b} = Enum.split(token_sequence, end_idx + 1)
+        {a, b} = Enum.split(token_sequence, end_idx + 1)
 
-        (replace_tokens ++ b)
+        (a ++ replace_tokens ++ b)
         |> reindex()
 
       true ->
