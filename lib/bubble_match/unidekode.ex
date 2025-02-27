@@ -14,11 +14,11 @@ defmodule BubbleMatch.Unidekode do
       iex> BubbleMatch.Unidekode.to_ascii("código😀")
       "codigo"
 
-      iex> BubbleMatch.Unidekode.to_ascii('código')
-      'codigo'
+      iex> BubbleMatch.Unidekode.to_ascii(~c'código')
+      ~c'codigo'
 
-      iex> BubbleMatch.Unidekode.to_ascii('código℗')
-      'codigo'
+      iex> BubbleMatch.Unidekode.to_ascii(~c'código℗')
+      ~c'codigo'
   """
   @spec to_ascii(binary() | charlist()) :: binary() | charlist()
   def to_ascii(string), do: to_ascii(string, <<>>)
