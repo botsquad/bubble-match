@@ -209,4 +209,24 @@ defmodule BubbleMatch.SentenceTest do
     assert [%{value: %{"lemma" => "صباح"}}, %{value: %{"lemma" => "الخير"}}] =
              List.last(s.tokenizations)
   end
+
+  @spacy_json """
+              {"detected_language": "nl", "detected_language_prob": 0.884351986493869, "ents": [{"end": 14, "label": "CARDINAL", "start": 10}, {"end": 27, "label": "DATE", "start": 21}], "nlp_language": "nl", "sents": [{"end": 14, "start": 0}, {"end": 27, "start": 15}], "text": "ik bedoel 6:30 in de middag", "tokens": [{"dep": "nsubj", "end": 2, "head": 1, "id": 0, "lemma": "ik", "morph": "Case=Nom|Person=1|PronType=Prs", "norm": "ik", "pos": "PRON", "start": 0, "tag": "VNW|pers|pron|nomin|vol|1|ev", "text": "ik"}, {"dep": "ROOT", "end": 9, "head": 1, "id": 1, "lemma": "bedoelen", "morph": "Number=Sing|Tense=Pres|VerbForm=Fin", "norm": "bedoel", "pos": "VERB", "start": 3, "tag": "WW|pv|tgw|ev", "text": "bedoel"}, {"dep": "obj", "end": 14, "head": 1, "id": 2, "lemma": "6:30", "morph": "Gender=Neut|Number=Sing", "norm": "6:30", "pos": "PROPN", "start": 10, "tag": "TW|hoofd|vrij", "text": "6:30"}, {"dep": "case", "end": 17, "head": 5, "id": 3, "lemma": "in", "morph": "", "norm": "in", "pos": "ADP", "start": 15, "tag": "VZ|init", "text": "in"}, {"dep": "det", "end": 20, "head": 5, "id": 4, "lemma": "de", "morph": "Definite=Def", "norm": "de", "pos": "DET", "start": 18, "tag": "LID|bep|stan|rest", "text": "de"}, {"dep": "ROOT", "end": 27, "head": 5, "id": 5, "lemma": "middag", "morph": "Gender=Com|Number=Sing", "norm": "middag", "pos": "NOUN", "start": 21, "tag": "N|soort|ev|basis|zijd|stan", "text": "middag"}]}
+              """
+              |> Jason.decode!()
+
+  @duckling_json """
+                 [{"body": "6:30", "dim": "time", "end": 14, "latent": false, "start": 10, "value": {"grain": "minute", "type": "value", "value": "2025-02-26T06:30:00.000-08:00", "values": [{"grain": "minute", "type": "value", "value": "2025-02-26T06:30:00.000-08:00"}, {"grain": "minute", "type": "value", "value": "2025-02-27T06:30:00.000-08:00"}, {"grain": "minute", "type": "value", "value": "2025-02-28T06:30:00.000-08:00"}]}}, {"body": "30 in de middag", "dim": "time", "end": 27, "latent": false, "start": 12, "value": {"from": {"grain": "hour", "value": "2030-01-01T12:00:00.000-08:00"}, "to": {"grain": "hour", "value": "2030-01-01T18:00:00.000-08:00"}, "type": "interval", "values": [{"from": {"grain": "hour", "value": "2030-01-01T12:00:00.000-08:00"}, "to": {"grain": "hour", "value": "2030-01-01T18:00:00.000-08:00"}, "type": "interval"}, {"from": {"grain": "hour", "value": "2030-01-02T12:00:00.000-08:00"}, "to": {"grain": "hour", "value": "2030-01-02T18:00:00.000-08:00"}, "type": "interval"}, {"from": {"grain": "hour", "value": "2030-01-03T12:00:00.000-08:00"}, "to": {"grain": "hour", "value": "2030-01-03T18:00:00.000-08:00"}, "type": "interval"}]}}]
+                 """
+                 |> Jason.decode!()
+
+  test "sent spacy BOT-2154, consider all duckling entities" do
+    s =
+      Sentence.from_spacy(@spacy_json)
+      |> Sentence.add_duckling_entities(@duckling_json)
+
+    [t | _] = s.tokenizations
+
+    assert length(Enum.filter(t, &match?(%{value: %{kind: "time"}}, &1))) == 2
+  end
 end
