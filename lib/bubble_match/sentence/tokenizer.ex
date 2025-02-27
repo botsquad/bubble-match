@@ -50,7 +50,7 @@ defmodule BubbleMatch.Sentence.Tokenizer do
     |> post_traverse(:match_and_emit_tag)
   )
 
-  defp match_and_emit_tag(_rest, inp, context, _, offset) do
+  defp match_and_emit_tag(rest, inp, context, _, offset) do
     {value, raw, type} =
       case inp do
         [{:word, [text]}] ->
@@ -71,15 +71,15 @@ defmodule BubbleMatch.Sentence.Tokenizer do
     start = offset - String.length(raw)
     end_ = start + String.length(String.trim(raw))
 
-    {[
-       %Token{
-         raw: raw,
-         start: start,
-         end: end_,
-         value: value,
-         type: type
-       }
-     ], context}
+    token = %Token{
+      raw: raw,
+      start: start,
+      end: end_,
+      value: value,
+      type: type
+    }
+
+    {rest, [token], context}
   end
 
   defparsecp(
