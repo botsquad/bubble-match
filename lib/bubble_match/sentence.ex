@@ -12,7 +12,7 @@ defmodule BubbleMatch.Sentence do
 
   """
 
-  use BubbleLib.DslStruct,
+  use BubbleMatch.DslStruct,
     text: nil,
     tokenizations: []
 
@@ -179,5 +179,5 @@ defimpl String.Chars, for: BubbleMatch.Sentence do
   def to_string(%BubbleMatch.Sentence{text: text}), do: text
 end
 
-require BubbleLib.DslStruct
-BubbleLib.DslStruct.jason_derive(BubbleMatch.Sentence)
+require BubbleMatch.DslStruct
+BubbleMatch.DslStruct.jason_derive(BubbleMatch.Sentence)

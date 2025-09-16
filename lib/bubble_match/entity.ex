@@ -1,5 +1,5 @@
 defmodule BubbleMatch.Entity do
-  use BubbleLib.DslStruct,
+  use BubbleMatch.DslStruct,
     kind: nil,
     provider: nil,
     value: nil,
@@ -19,5 +19,5 @@ defimpl String.Chars, for: BubbleMatch.Entity do
   end
 end
 
-require BubbleLib.DslStruct
-BubbleLib.DslStruct.jason_derive(BubbleMatch.Entity)
+require BubbleMatch.DslStruct
+BubbleMatch.DslStruct.jason_derive(BubbleMatch.Entity)
