@@ -71,13 +71,15 @@ defmodule BubbleMatch.Parser do
     #    {string, re_flags, match_flags}
     {{:flags, flags}, chars} = List.pop_at(r, length(r) - 1)
 
-    {re, token_match} =
+    {re_source, token_match} =
       case flags == [?T] do
         true -> {"^" <> to_string(chars) <> "$", true}
         false -> {to_string(chars), false}
       end
 
-    {Regex.compile!(re, "iu"), token_match}
+    # Validate at parse-time, but keep only the source in the AST.
+    _ = Regex.compile!(re_source, "iu")
+    {re_source, token_match}
   end
 
   regex =

@@ -102,6 +102,17 @@ defmodule BubbleMatch.MatcherTest do
       assert :nomatch == Matcher.match("/[a-z][a-z]+/", "A1")
     end
 
+    test "backward compatibility: compiled Regex in AST still works" do
+      {:ok, re} = Regex.compile("\\d+", "iu")
+      expr = %BubbleMatch{ast: [{:regex, {re, false}, []}]}
+      assert {:match, %{}} == Matcher.match(expr, "foo 32432")
+    end
+
+    test "invalid regex in AST does not crash (returns :nomatch)" do
+      expr = %BubbleMatch{ast: [{:regex, {"[", true}, []}]}
+      assert :nomatch == Matcher.match(expr, "hello")
+    end
+
     test "regex w/ slash" do
       assert {:match, %{}} == Matcher.match("/\\/quit/", "/quit")
     end

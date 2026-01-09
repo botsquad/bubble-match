@@ -106,6 +106,17 @@ defmodule BubbleMatch.ParserTest do
     assert {:error, _} = parse("/f[/")
   end
 
+  test "regex AST stores source strings (no compiled Regex structs)" do
+    {:ok, %{ast: ast}} = parse("this is a /regex/")
+
+    assert Enum.any?(ast, fn
+             {:regex, {re_source, _token_match}, _meta} when is_binary(re_source) -> true
+             _ -> false
+           end)
+
+    refute contains_compiled_regex?(ast)
+  end
+
   test "range" do
     assert {:ok, %{ast: [{:any, [], [repeat: {2, 4, :greedy}]}]}} = parse("[2-4]")
 
@@ -172,4 +183,17 @@ defmodule BubbleMatch.ParserTest do
   ###
 
   defp parse(str), do: Parser.parse(str, expand: false)
+
+  defp contains_compiled_regex?(%Regex{}), do: true
+  defp contains_compiled_regex?(%_struct{} = s), do: contains_compiled_regex?(Map.from_struct(s))
+
+  defp contains_compiled_regex?(m) when is_map(m),
+    do: Enum.any?(Map.to_list(m), &contains_compiled_regex?/1)
+
+  defp contains_compiled_regex?(l) when is_list(l), do: Enum.any?(l, &contains_compiled_regex?/1)
+
+  defp contains_compiled_regex?(t) when is_tuple(t),
+    do: t |> Tuple.to_list() |> contains_compiled_regex?()
+
+  defp contains_compiled_regex?(_), do: false
 end

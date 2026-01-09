@@ -45,7 +45,7 @@ defmodule BubbleMatch.MixProject do
       {:inflex, "~> 2.0"},
       {:jason, "~> 1.0"},
       {:ex_doc, "~> 0.0", only: :dev},
-      {:stream_data, "~> 1.0", only: :test}
+      {:stream_data, "~> 1.0", only: [:dev, :test]}
     ]
   end
 end
